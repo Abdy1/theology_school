@@ -17,7 +17,7 @@ export const Navigation = () => {
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
         <Link to="/" className="flex items-center space-x-2">
           <BookOpen className="h-8 w-8 text-primary" />
-          <span className="text-2xl font-bold text-primary">TheologySchool</span>
+          <span className="text-2xl font-bold text-primary">Dothan</span>
         </Link>
         
         <div className="flex items-center space-x-6">
