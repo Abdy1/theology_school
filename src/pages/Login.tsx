@@ -20,7 +20,7 @@ const Login = () => {
     try {
       await login(email, password);
       toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
-      navigate('/courses');
+      navigate('/my-courses');
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to login', variant: 'destructive' });
     }

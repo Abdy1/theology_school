@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone_number, setPhone_number] = useState('');
   const [password, setPassword] = useState('');
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, phone_number);
       toast({ title: 'Welcome!', description: 'Account created successfully.' });
       navigate('/courses');
     } catch (error) {
@@ -46,6 +47,17 @@ const Signup = () => {
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+                  <div className="space-y-2">
+                <Label htmlFor="phone_number">Phone NUmber</Label>
+                <Input
+                  id="phone_number"
+                  type="text"
+                  placeholder="+251"
+                  value={phone_number}
+                  onChange={(e) => setPhone_number(e.target.value)}
                   required
                 />
               </div>

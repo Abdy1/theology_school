@@ -73,7 +73,7 @@ const Courses = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">My Courses</h1>
+            <h1 className="text-4xl font-bold text-primary mb-2">Academic Programms</h1>
             <p className="text-muted-foreground">Continue your theological education journey</p>
           </div>
           <div className="w-full md:w-80">
@@ -115,45 +115,7 @@ const Courses = () => {
           ))}
         </div>
 
-        <div className="mt-12 border-t pt-10">
-          <h2 className="text-3xl font-bold text-primary mb-6">Programs Offered</h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Degree Programs</h3>
-              <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                <li>Youth Ministry</li>
-                <li>Child Development</li>
-                <li>Academic Theology</li>
-                <li>Christian Counseling</li>
-                <li>Christian Leadership</li>
-                <li>Church Planting</li>
-                <li>Mission Studies</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Diploma Programs</h3>
-              <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                <li>Church Planting</li>
-                <li>Christian Journalism</li>
-                <li>Christian Counseling Ministry</li>
-                <li>Youth and Children’s Ministry</li>
-                <li>Women’s Ministry</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Certificate Programs</h3>
-              <ul className="space-y-1 text-sm text-muted-foreground list-disc list-inside">
-                <li>Church Planting</li>
-                <li>Christian Journalism</li>
-                <li>Christian Counseling Ministry</li>
-                <li>Youth, Women, and Children’s Ministry</li>
-                <li>Christian Leadership</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+   
       </div>
     </div>
   );

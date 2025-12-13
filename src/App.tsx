@@ -10,6 +10,7 @@ import Signup from "./pages/Signup";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import CourseLearn from "./pages/CourseLearn";
+import MyCourses from "./pages/MyCourses";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/my-courses" element={<MyCourses />} />
             <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="/courses/:courseId/learn" element={<CourseLearn />} />
             <Route path="/contact" element={<Contact />} />
