@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
@@ -6,174 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export const mockCourseDetails = {
-  1: {
-    title: 'Introduction to Theology',
-    description: 'Explore the fundamental concepts and principles of theological study.',
-    duration: '45 min',
-    price: '$49',
-    videos: [
-      {
-        id: 'video-1',
-        title: 'Module 1: Introduction and Overview',
-        videoUrl: 'https://www.youtube.com/embed/ZFlZW6hWPro',
-      },
-      {
-        id: 'video-2',
-        title: 'Module 2: Core Concepts',
-        videoUrl: 'https://www.youtube.com/embed/oR6txCok6Ao',
-      },
-      {
-        id: 'video-3',
-        title: 'Module 3: Key Doctrines',
-        videoUrl: 'https://www.youtube.com/embed/av25t75y0JU',
-      },
-      {
-        id: 'video-4',
-        title: 'Module 4: Applications',
-        videoUrl: 'https://www.youtube.com/embed/id3H646l57U',
-      },
-      {
-        id: 'video-5',
-        title: 'Module 5: Review and Next Steps',
-        videoUrl: 'https://www.youtube.com/embed/4Kzs1cLQ7qc',
-      },
-    ],
-    resources: [
-      {
-        id: 'notes',
-        label: 'Lecture Notes (PDF)',
-        url: 'https://example.com/resources/introduction-to-theology-notes.pdf',
-      },
-    ],
-  },
-  2: {
-    title: 'Biblical Hermeneutics',
-    description: 'Learn the art and science of biblical interpretation.',
-    duration: '60 min',
-    price: '$59',
-    videos: [
-      {
-        id: 'video-1',
-        title: 'Module 1: Introduction and Overview',
-        videoUrl: 'https://www.youtube.com/embed/ZFlZW6hWPro',
-      },
-      {
-        id: 'video-2',
-        title: 'Module 2: Core Concepts',
-        videoUrl: 'https://www.youtube.com/embed/oR6txCok6Ao',
-      },
-      {
-        id: 'video-3',
-        title: 'Module 3: Key Doctrines',
-        videoUrl: 'https://www.youtube.com/embed/av25t75y0JU',
-      },
-      {
-        id: 'video-4',
-        title: 'Module 4: Applications',
-        videoUrl: 'https://www.youtube.com/embed/id3H646l57U',
-      },
-      {
-        id: 'video-5',
-        title: 'Module 5: Review and Next Steps',
-        videoUrl: 'https://www.youtube.com/embed/4Kzs1cLQ7qc',
-      },
-    ],
-    resources: [
-      {
-        id: 'guide',
-        label: 'Interpretation Guide (PDF)',
-        url: 'https://example.com/resources/biblical-hermeneutics-guide.pdf',
-      },
-    ],
-  },
-  3: {
-    title: 'Church History I',
-    description: 'Journey through the early centuries of Christian history.',
-    duration: '55 min',
-    price: '$55',
-    videos: [
-      {
-        id: 'video-1',
-        title: 'Module 1: Introduction and Overview',
-        videoUrl: 'https://www.youtube.com/embed/ZFlZW6hWPro',
-      },
-      {
-        id: 'video-2',
-        title: 'Module 2: Core Concepts',
-        videoUrl: 'https://www.youtube.com/embed/oR6txCok6Ao',
-      },
-      {
-        id: 'video-3',
-        title: 'Module 3: Key Doctrines',
-        videoUrl: 'https://www.youtube.com/embed/av25t75y0JU',
-      },
-      {
-        id: 'video-4',
-        title: 'Module 4: Applications',
-        videoUrl: 'https://www.youtube.com/embed/id3H646l57U',
-      },
-      {
-        id: 'video-5',
-        title: 'Module 5: Review and Next Steps',
-        videoUrl: 'https://www.youtube.com/embed/4Kzs1cLQ7qc',
-      },
-    ],
-    resources: [
-      {
-        id: 'timeline',
-        label: 'Historical Timeline (PDF)',
-        url: 'https://example.com/resources/church-history-timeline.pdf',
-      },
-    ],
-  },
-  4: {
-    title: 'Systematic Theology',
-    description: 'Understand the organized study of Christian doctrines.',
-    duration: '70 min',
-    price: '$69',
-    videos: [
-      {
-        id: 'video-1',
-        title: 'Module 1: Introduction and Overview',
-        videoUrl: 'https://www.youtube.com/embed/ZFlZW6hWPro',
-      },
-      {
-        id: 'video-2',
-        title: 'Module 2: Core Concepts',
-        videoUrl: 'https://www.youtube.com/embed/oR6txCok6Ao',
-      },
-      {
-        id: 'video-3',
-        title: 'Module 3: Key Doctrines',
-        videoUrl: 'https://www.youtube.com/embed/av25t75y0JU',
-      },
-      {
-        id: 'video-4',
-        title: 'Module 4: Applications',
-        videoUrl: 'https://www.youtube.com/embed/id3H646l57U',
-      },
-      {
-        id: 'video-5',
-        title: 'Module 5: Review and Next Steps',
-        videoUrl: 'https://www.youtube.com/embed/4Kzs1cLQ7qc',
-      },
-    ],
-    resources: [
-      {
-        id: 'outline',
-        label: 'Doctrine Outline (PDF)',
-        url: 'https://example.com/resources/systematic-theology-outline.pdf',
-      },
-    ],
-  },
-} as const;
+const API_BASE_URL = 'http://localhost:8081';
 
 const CourseDetail = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const [course, setCourse] = useState(null);
+  const [courseLoading, setCourseLoading] = useState(true);
+  const [enrolling, setEnrolling] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -181,16 +25,35 @@ const CourseDetail = () => {
     }
   }, [user, isLoading, navigate]);
 
-  if (isLoading) {
+  useEffect(() => {
+    const fetchCourse = async () => {
+      if (!courseId) return;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/courses/${courseId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCourse(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch course:', error);
+      } finally {
+        setCourseLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchCourse();
+    }
+  }, [user, courseId]);
+
+  if (isLoading || courseLoading) {
     return <div>Loading...</div>;
   }
 
   if (!user) {
     return null;
   }
-
-  const numericId = courseId ? parseInt(courseId, 10) : NaN;
-  const course = Number.isNaN(numericId) ? null : (mockCourseDetails as any)[numericId];
 
   if (!course) {
     return (
@@ -216,14 +79,21 @@ const CourseDetail = () => {
         <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
           <Card className="overflow-hidden">
             <div className="aspect-video bg-muted flex items-center justify-center">
-              <iframe
-                className="w-full h-full"
-                src={course.videos[0].videoUrl}
-                title={course.videos[0].title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {course.modules && course.modules.length > 0 && course.modules[0].videoUrls && course.modules[0].videoUrls.length > 0 ? (
+                <iframe
+                  className="w-full h-full"
+                  src={course.modules[0].videoUrls[0].replace('watch?v=', 'embed/').replace('youtube.com', 'youtube-nocookie.com')}
+                  title={course.modules[0].title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="text-center">
+                  <Play className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground">No video available</p>
+                </div>
+              )}
             </div>
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -233,7 +103,7 @@ const CourseDetail = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Duration</p>
-                  <Badge variant="secondary">{course.duration}</Badge>
+                  <Badge variant="secondary">{course.durationMinutes} min</Badge>
                 </div>
               </div>
             </CardHeader>
@@ -247,50 +117,98 @@ const CourseDetail = () => {
               <CardContent className="space-y-4 text-sm text-muted-foreground">
                 <div>
                   <p className="font-medium text-foreground mb-1">About this course</p>
-                  <p>
-                    This introductory theology course walks you through the big questions of the Christian
-                    faith in a clear, structured way. You&apos;ll move from basic concepts to practical
-                    application in ministry and everyday life.
-                  </p>
+                  <p>{course.description}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-foreground mb-1">Requirements</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Basic familiarity with the Bible.</li>
-                    <li>Willingness to reflect and take notes.</li>
-                    <li>Internet connection to watch the video lessons.</li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground mb-1">Who this course is for</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>New believers wanting a structured overview of theology.</li>
-                    <li>Lay leaders and volunteers in local churches.</li>
-                    <li>Anyone curious about the core doctrines of the Christian faith.</li>
-                  </ul>
+                  <p className="font-medium text-foreground mb-1">Course level</p>
+                  <Badge variant="secondary">{course.level}</Badge>
                 </div>
                 <div>
                   <p className="font-medium text-foreground mb-1">Modules included</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Module 1: Introduction and Overview</li>
-                    <li>Module 2: Core Concepts</li>
-                    <li>Module 3: Key Doctrines</li>
-                    <li>Module 4: Applications</li>
-                    <li>Module 5: Review and Next Steps</li>
-                  </ul>
+                  {course.modules && course.modules.length > 0 ? (
+                    <ul className="list-disc list-inside space-y-1">
+                      {course.modules.map((module: any, index: number) => (
+                        <li key={module.id}>Module {index + 1}: {module.title}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No modules available</p>
+                  )}
                 </div>
+                {course.modules && course.modules.length > 0 && (
+                  <div>
+                    <p className="font-medium text-foreground mb-1">Course content</p>
+                    <div className="space-y-2">
+                      {course.modules.map((module: any) => (
+                        <div key={module.id} className="border-l-2 border-primary pl-3">
+                          <p className="font-medium text-foreground">{module.title}</p>
+                          {module.videoUrls && module.videoUrls.length > 0 && (
+                            <p className="text-xs">{module.videoUrls.length} video(s)</p>
+                          )}
+                          {module.materials && module.materials.length > 0 && (
+                            <p className="text-xs">{module.materials.length} material(s)</p>
+                          )}
+                          {module.questions && module.questions.length > 0 && (
+                            <p className="text-xs">{module.questions.length} question(s)</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="pt-2 border-t mt-2 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Course price</p>
-                    <p className="text-2xl font-bold text-primary">{course.price}</p>
+                    <p className="text-2xl font-bold text-primary">${course.price}</p>
                   </div>
                   <Button
                     size="lg"
-                    onClick={() => {
-                      navigate(`/courses/${courseId}/learn`);
+                    disabled={enrolling}
+                    onClick={async () => {
+                      if (!courseId || !user?.id) {
+                        toast({
+                          title: 'Unable to enroll',
+                          description: 'User or course missing. Please log in again.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+
+                      setEnrolling(true);
+                      try {
+                        const response = await fetch(`${API_BASE_URL}/api/enrollments`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            userId: Number(user.id),
+                            courseId: Number(courseId),
+                          }),
+                        });
+
+                        if (!response.ok) {
+                          throw new Error('Enrollment request failed');
+                        }
+
+                        toast({
+                          title: 'Enrolled successfully',
+                          description: 'Opening your course now.',
+                        });
+                        navigate(`/courses/${courseId}/learn`);
+                      } catch (error) {
+                        console.error('Enrollment failed', error);
+                        toast({
+                          title: 'Could not enroll',
+                          description: 'Please try again or contact support.',
+                          variant: 'destructive',
+                        });
+                      } finally {
+                        setEnrolling(false);
+                      }
                     }}
                   >
-                    Buy course
+                    {enrolling ? 'Processing...' : 'Buy course'}
                   </Button>
                 </div>
               </CardContent>

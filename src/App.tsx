@@ -4,15 +4,23 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import CourseLearn from "./pages/CourseLearn";
+import CourseQuiz from "./pages/CourseQuiz";
 import MyCourses from "./pages/MyCourses";
 import Contact from "./pages/Contact";
+import AdminDashboard from "./pages/AdminDashboard";
+import InstructorDashboard from "./pages/InstructorDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+import CreateCourse from "./pages/CreateCourse";
+import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import AssignmentReview from "./pages/AssignmentReview";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +39,42 @@ const App = () => (
             <Route path="/my-courses" element={<MyCourses />} />
             <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="/courses/:courseId/learn" element={<CourseLearn />} />
+            <Route path="/courses/:courseId/modules/:moduleIndex/quiz" element={<CourseQuiz />} />
+            <Route path="/assignment/:assignmentId/review" element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <AssignmentReview />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/contact" element={<Contact />} />
+            
+            {/* Role-based routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/instructor" element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <InstructorDashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/create-course" element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <CreateCourse />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/student" element={
+              <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

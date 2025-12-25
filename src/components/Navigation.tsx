@@ -1,16 +1,19 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { BookOpen, LogOut } from 'lucide-react';
 
 export const Navigation = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin, isTeacher, isStudent } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  const isLandingPage = location.pathname === '/';
 
   return (
     <nav className="border-b bg-card">
@@ -23,13 +26,17 @@ export const Navigation = () => {
         <div className="flex items-center space-x-6">
           {user ? (
             <>
-              <Link to="/courses" className="text-foreground hover:text-primary transition-colors">
-                Courses
-              </Link>
-              <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
-                Contact
-              </Link>
-              <span className="text-muted-foreground">Welcome, {user.name}</span>
+              {isLandingPage && (
+                <>
+                  <Link to="/courses" className="text-foreground hover:text-primary transition-colors">
+                    Courses
+                  </Link>
+                  <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
+                    Contact
+                  </Link>
+                </>
+              )}
+              <span className="text-muted-foreground">{user.name}</span>
               <Button onClick={handleLogout} variant="outline" size="sm">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -37,9 +44,13 @@ export const Navigation = () => {
             </>
           ) : (
             <>
-              <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
-                Contact
-              </Link>
+              {isLandingPage && (
+                <>
+                  <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
+                    Contact
+                  </Link>
+                </>
+              )}
               <Link to="/login">
                 <Button variant="outline">Login</Button>
               </Link>

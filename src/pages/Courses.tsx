@@ -6,41 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Play } from 'lucide-react';
 
-const mockCourses = [
-  {
-    id: 1,
-    title: 'Introduction to Theology',
-    description: 'Explore the fundamental concepts and principles of theological study.',
-    duration: '45 min',
-    level: 'Beginner',
-  },
-  {
-    id: 2,
-    title: 'Biblical Hermeneutics',
-    description: 'Learn the art and science of biblical interpretation.',
-    duration: '60 min',
-    level: 'Intermediate',
-  },
-  {
-    id: 3,
-    title: 'Church History I',
-    description: 'Journey through the early centuries of Christian history.',
-    duration: '55 min',
-    level: 'Intermediate',
-  },
-  {
-    id: 4,
-    title: 'Systematic Theology',
-    description: 'Understand the organized study of Christian doctrines.',
-    duration: '70 min',
-    level: 'Advanced',
-  },
-];
+const API_BASE_URL = 'http://localhost:8081';
 
 const Courses = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -48,24 +21,46 @@ const Courses = () => {
     }
   }, [user, isLoading, navigate]);
 
-  if (isLoading) {
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/courses`);
+        if (response.ok) {
+          const data = await response.json();
+          // Filter to show only approved courses
+          const approvedCourses = data.filter((course: any) => course.status === 'ACTIVE');
+          setCourses(approvedCourses);
+        }
+      } catch (error) {
+        console.error('Failed to fetch courses:', error);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchCourses();
+    }
+  }, [user]);
+
+  const filteredCourses = useMemo(
+    () =>
+      courses.filter((course: any) => {
+        const q = search.toLowerCase();
+        return (
+          course.title.toLowerCase().includes(q) || course.description.toLowerCase().includes(q)
+        );
+      }),
+    [search, courses],
+  );
+
+  if (isLoading || coursesLoading) {
     return <div>Loading...</div>;
   }
 
   if (!user) {
     return null;
   }
-
-  const filteredCourses = useMemo(
-    () =>
-      mockCourses.filter((course) => {
-        const q = search.toLowerCase();
-        return (
-          course.title.toLowerCase().includes(q) || course.description.toLowerCase().includes(q)
-        );
-      }),
-    [search],
-  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +92,7 @@ const Courses = () => {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-xl">{course.title}</CardTitle>
-                  <Badge variant="secondary">{course.duration}</Badge>
+                  <Badge variant="secondary">{course.durationMinutes} min</Badge>
                 </div>
                 <CardDescription>{course.description}</CardDescription>
               </CardHeader>

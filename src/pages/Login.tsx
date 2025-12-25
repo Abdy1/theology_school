@@ -8,19 +8,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Navigation } from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
 
+const API_BASE_URL = 'http://localhost:8081';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { login, isAdmin, isTeacher, isStudent } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const data = await response.json();
+      
+      // Call login to update context
       await login(email, password);
       toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
-      navigate('/my-courses');
+      
+      // Redirect based on role from API response
+      if (data.role === 'admin') {
+        navigate('/admin');
+      } else if (data.role === 'teacher') {
+        navigate('/instructor');
+      } else {
+        navigate('/student');
+      }
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to login', variant: 'destructive' });
     }
