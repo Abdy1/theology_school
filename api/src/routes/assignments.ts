@@ -251,40 +251,28 @@ router.patch('/submissions/:submissionId', async (req, res) => {
 
     const updatedSubmission = result.rows[0];
 
-    // Update enrollment assignment grade (60% weight)
+    // Update enrollment points when assignment is approved
     if (updatedSubmission.status === 'APPROVED' && typeof updatedSubmission.gradePercent === 'number') {
-      await pool.query(
-        `UPDATE "Enrollment" 
-         SET "assignmentGrade" = $1 
-         WHERE "id" = $2`,
-        [updatedSubmission.gradePercent, updatedSubmission.enrollmentId]
+      // Get assignment points
+      const assignmentResult = await pool.query(
+        'SELECT points FROM "ModuleAssignment" WHERE id = $1',
+        [updatedSubmission.assignmentId]
       );
 
-      // Calculate final grade (60% assignments + 40% quizzes)
-      const enrollmentResult = await pool.query(
-        `SELECT "assignmentGrade", "quizGrade" FROM "Enrollment" WHERE id = $1`,
-        [updatedSubmission.enrollmentId]
-      );
+      if (assignmentResult.rows.length > 0) {
+        const assignmentPoints = assignmentResult.rows[0].points;
+        const earnedPoints = (updatedSubmission.gradePercent / 100) * assignmentPoints;
 
-      if (enrollmentResult.rows.length > 0) {
-        const enrollment = enrollmentResult.rows[0];
-        const assignmentGrade = enrollment.assignmentGrade || 0;
-        const quizGrade = enrollment.quizGrade || 0;
-        const finalGrade = (assignmentGrade * 0.6) + (quizGrade * 0.4);
-        
-        // Determine letter grade
-        let gradeLetter = 'F';
-        if (finalGrade >= 90) gradeLetter = 'A';
-        else if (finalGrade >= 80) gradeLetter = 'B';
-        else if (finalGrade >= 70) gradeLetter = 'C';
-        else if (finalGrade >= 60) gradeLetter = 'D';
-
+        // Update enrollment with earned points
         await pool.query(
           `UPDATE "Enrollment" 
-           SET "finalGrade" = $1, "gradeLetter" = $2, "updatedAt" = NOW()
-           WHERE id = $3`,
-          [finalGrade, gradeLetter, updatedSubmission.enrollmentId]
+           SET "earnedPoints" = "earnedPoints" + $1
+           WHERE id = $2`,
+          [earnedPoints, updatedSubmission.enrollmentId]
         );
+
+        // Recalculate total course points and final grade
+        await recalculateEnrollmentGrade(updatedSubmission.enrollmentId);
       }
     }
 
@@ -294,6 +282,65 @@ router.patch('/submissions/:submissionId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+// Helper function to recalculate enrollment grade
+async function recalculateEnrollmentGrade(enrollmentId: number) {
+  try {
+    // Get all approved assignments with their points
+    const assignmentResult = await pool.query(
+      `SELECT s."gradePercent", a.points
+       FROM "AssignmentSubmission" s
+       JOIN "ModuleAssignment" a ON s."assignmentId" = a.id
+       WHERE s."enrollmentId" = $1 AND s.status = 'APPROVED'`,
+      [enrollmentId]
+    );
+
+    // Get all quiz attempts with their points
+    const quizResult = await pool.query(
+      `SELECT qa.percentage, q.points
+       FROM "QuizAttempt" qa
+       JOIN "QuizQuestion" q ON qa."quizId" = q.id
+       WHERE qa."userId" = (SELECT "userId" FROM "Enrollment" WHERE id = $1) 
+       AND qa."courseId" = (SELECT "courseId" FROM "Enrollment" WHERE id = $1) 
+       AND qa.passed = true`,
+      [enrollmentId]
+    );
+
+    // Calculate total earned points and total possible points
+    let earnedPoints = 0;
+    let totalPoints = 0;
+
+    assignmentResult.rows.forEach(row => {
+      earnedPoints += (row.gradePercent / 100) * row.points;
+      totalPoints += row.points;
+    });
+
+    quizResult.rows.forEach(row => {
+      earnedPoints += (row.percentage / 100) * row.points;
+      totalPoints += row.points;
+    });
+
+    // Calculate final grade as percentage
+    const finalGrade = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
+
+    // Determine letter grade
+    let gradeLetter = 'F';
+    if (finalGrade >= 90) gradeLetter = 'A';
+    else if (finalGrade >= 80) gradeLetter = 'B';
+    else if (finalGrade >= 70) gradeLetter = 'C';
+    else if (finalGrade >= 60) gradeLetter = 'D';
+
+    // Update enrollment
+    await pool.query(
+      `UPDATE "Enrollment" 
+       SET "earnedPoints" = $1, "totalPoints" = $2, "finalGrade" = $3, "gradeLetter" = $4, "updatedAt" = NOW()
+       WHERE id = $5`,
+      [earnedPoints, totalPoints, finalGrade, gradeLetter, enrollmentId]
+    );
+  } catch (error) {
+    console.error('Recalculate enrollment grade error', error);
+  }
+}
 
 // Review submission endpoint (for instructor dashboard)
 router.patch('/submissions/:submissionId/review', async (req, res) => {
@@ -322,12 +369,15 @@ router.patch('/submissions/:submissionId/review', async (req, res) => {
 router.post('/certificate/generate', async (req, res) => {
   const { userId, courseId } = req.body || {};
 
+  console.log('Certificate API request:', { userId, courseId });
+
   if (!userId || !courseId) {
+    console.log('Certificate API: Missing userId or courseId');
     return res.status(400).json({ message: 'userId and courseId are required' });
   }
 
   try {
-    // Get enrollment with final grade
+    // Get enrollment with final grade and points
     const enrollmentResult = await pool.query(
       `SELECT e.*, u.name as "userName", c.title as "courseTitle"
        FROM "Enrollment" e
@@ -337,17 +387,84 @@ router.post('/certificate/generate', async (req, res) => {
       [Number(userId), Number(courseId)]
     );
 
+    console.log('Certificate API: Enrollment query result rows:', enrollmentResult.rows.length);
+
     if (enrollmentResult.rows.length === 0) {
+      console.log('Certificate API: Enrollment not found');
       return res.status(404).json({ message: 'Enrollment not found' });
     }
 
     const enrollment = enrollmentResult.rows[0];
+    
+    console.log('Certificate API: Enrollment data:', {
+      finalGrade: enrollment.finalGrade,
+      certificateIssued: enrollment.certificateIssued,
+      earnedPoints: enrollment.earnedPoints,
+      totalPoints: enrollment.totalPoints
+    });
+
+    // If finalGrade is null, 0, or NaN, calculate it manually
+    if (enrollment.finalGrade === null || enrollment.finalGrade === '0.00' || Number(enrollment.finalGrade) === 0 || isNaN(Number(enrollment.earnedPoints)) || isNaN(Number(enrollment.totalPoints))) {
+      console.log('Certificate API: Calculating final grade manually');
+      
+      // Calculate total earned and possible points
+      const assignmentPointsResult = await pool.query(
+        `SELECT COALESCE(SUM(CASE WHEN s.status = 'APPROVED' THEN a.points ELSE 0 END), 0) as earnedPoints,
+                COALESCE(SUM(a.points), 0) as totalPoints
+         FROM "AssignmentSubmission" s
+         JOIN "ModuleAssignment" a ON s."assignmentId" = a.id
+         JOIN "CourseModule" cm ON a."moduleId" = cm.id
+         WHERE s."userId" = $1 AND cm."courseId" = $2`,
+        [Number(userId), Number(courseId)]
+      );
+
+      const quizPointsResult = await pool.query(
+        `SELECT COALESCE(SUM(
+           CASE WHEN qa.passed = true THEN q.points ELSE 0 END
+         ), 0) as earnedPoints,
+                COALESCE(SUM(q.points), 0) as totalPoints
+         FROM "QuizAttempt" qa
+         JOIN "QuizQuestion" q ON qa."quizId" = q.id
+         WHERE qa."userId" = $1 AND qa."courseId" = $2`,
+        [Number(userId), Number(courseId)]
+      );
+
+      const assignmentPoints = assignmentPointsResult.rows[0];
+      const quizPoints = quizPointsResult.rows[0];
+      
+      console.log('Certificate API: Assignment points:', assignmentPoints);
+      console.log('Certificate API: Quiz points:', quizPoints);
+      
+      const totalEarnedPoints = Number(assignmentPoints.earnedpoints || 0) + Number(quizPoints.earnedpoints || 0);
+      const totalPossiblePoints = Number(assignmentPoints.totalpoints || 0) + Number(quizPoints.totalpoints || 0);
+      
+      const calculatedFinalGrade = totalPossiblePoints > 0 ? (totalEarnedPoints / totalPossiblePoints) * 100 : 0;
+      
+      console.log('Certificate API: Manual grade calculation', {
+        totalEarnedPoints,
+        totalPossiblePoints,
+        calculatedFinalGrade
+      });
+
+      // Update enrollment with calculated grade
+      await pool.query(
+        `UPDATE "Enrollment" 
+         SET "earnedPoints" = $1, "totalPoints" = $2, "finalGrade" = $3, "updatedAt" = NOW()
+         WHERE "userId" = $4 AND "courseId" = $5`,
+        [totalEarnedPoints, totalPossiblePoints, calculatedFinalGrade, Number(userId), Number(courseId)]
+      );
+
+      enrollment.finalGrade = calculatedFinalGrade;
+      enrollment.earnedPoints = totalEarnedPoints;
+      enrollment.totalPoints = totalPossiblePoints;
+    }
 
     // Check if user has completed all requirements
     if (enrollment.finalGrade === null || enrollment.finalGrade < 70) {
+      console.log('Certificate API: Grade check failed', { finalGrade: enrollment.finalGrade });
       return res.status(400).json({ 
         message: 'Course not completed or grade below 70%',
-        finalGrade: enrollment.finalGrade 
+        finalGrade: enrollment.finalGrade,
       });
     }
 
@@ -356,22 +473,48 @@ router.post('/certificate/generate', async (req, res) => {
       return res.status(400).json({ message: 'Certificate already issued' });
     }
 
-    // Generate certificate data
+    // Get detailed breakdown for certificate
+    const assignmentBreakdown = await pool.query(
+      `SELECT a.title, s."gradePercent", a.points, (s."gradePercent"/100 * a.points) as "earnedPoints"
+       FROM "AssignmentSubmission" s
+       JOIN "ModuleAssignment" a ON s."assignmentId" = a.id
+       WHERE s."enrollmentId" = $1 AND s.status = 'APPROVED'
+       ORDER BY a.title`,
+      [enrollment.id]
+    );
+
+    const quizBreakdown = await pool.query(
+      `SELECT q."questionText" as title, qa.percentage as "gradePercent", q.points, (qa.percentage/100 * q.points) as "earnedPoints"
+       FROM "QuizAttempt" qa
+       JOIN "QuizQuestion" q ON qa."quizId" = q.id
+       WHERE qa."userId" = $1 AND qa."courseId" = $2 AND qa.passed = true
+       ORDER BY q."questionText"`,
+      [Number(userId), Number(courseId)]
+    );
+
+    // Generate certificate data with points breakdown
+    const certificateId = `CERT-${Date.now()}-${userId}-${courseId}`;
     const certificateData = {
       studentName: enrollment.userName,
       courseTitle: enrollment.courseTitle,
       finalGrade: enrollment.finalGrade,
       gradeLetter: enrollment.gradeLetter,
+      earnedPoints: enrollment.earnedPoints,
+      totalPoints: enrollment.totalPoints,
       completedAt: new Date().toISOString(),
-      certificateId: `CERT-${Date.now()}-${userId}-${courseId}`
+      certificateId: certificateId,
+      breakdown: {
+        assignments: assignmentBreakdown.rows,
+        quizzes: quizBreakdown.rows
+      }
     };
 
-    // Mark certificate as issued
+    // Mark certificate as issued and store certificate ID
     await pool.query(
       `UPDATE "Enrollment" 
-       SET "certificateIssued" = TRUE, "updatedAt" = NOW()
-       WHERE "id" = $1`,
-      [enrollment.id]
+       SET "certificateIssued" = TRUE, "certificateId" = $1, "updatedAt" = NOW()
+       WHERE "id" = $2`,
+      [certificateId, enrollment.id]
     );
 
     res.json({

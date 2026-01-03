@@ -64,7 +64,7 @@ const CourseQuiz = () => {
   const score = useMemo(() => {
     if (!submitted) return 0;
     const correct = questions.reduce((acc, q) => {
-      const userAns = answers[q.id] ?? answers[questions.indexOf(q)];
+      const userAns = answers[q.id];
       return acc + (userAns === q.correctIndex ? 1 : 0);
     }, 0);
     return questions.length ? Math.round((correct / questions.length) * 100) : 0;
@@ -79,9 +79,7 @@ const CourseQuiz = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    const pct = score;
+  const handleSubmit = async () => {
     if (questions.length === 0) {
       toast({
         title: 'No questions available',
@@ -89,11 +87,63 @@ const CourseQuiz = () => {
       });
       return;
     }
-    toast({
-      title: pct >= PASSING_PERCENT ? 'Passed!' : 'Keep trying',
-      description: `You scored ${pct}%.`,
-      variant: pct >= PASSING_PERCENT ? 'default' : 'destructive',
-    });
+
+    if (totalAnswered < questions.length) {
+      toast({
+        title: 'Answer all questions',
+        description: 'Please answer all questions before submitting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Convert answers to the format expected by API
+      const apiAnswers: Record<number, string> = {};
+      questions.forEach(q => {
+        apiAnswers[q.id] = (answers[q.id] ?? 0).toString();
+      });
+
+      const resp = await fetch(`${API_BASE_URL}/api/quiz/${questions[0].id}/attempt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: Number(user.id),
+          courseId: Number(courseId),
+          moduleId: Number(moduleData.id),
+          answers: apiAnswers,
+        }),
+      });
+
+      if (!resp.ok) {
+        throw new Error('Quiz submit failed');
+      }
+
+      const result = await resp.json();
+      
+      setSubmitted(true);
+      
+      toast({
+        title: result.passed ? 'Quiz passed!' : 'Quiz not passed',
+        description: `Score: ${result.percentage}% (${result.correctAnswers}/${result.totalQuestions})`,
+        variant: result.passed ? 'default' : 'destructive',
+      });
+
+      // Navigate back after a delay
+      setTimeout(() => {
+        navigate(`/courses/${courseId}/learn`);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Submit quiz error', error);
+      toast({
+        title: 'Could not submit quiz',
+        description: 'Please try again later.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading || isLoading) {
@@ -215,4 +265,5 @@ const CourseQuiz = () => {
 };
 
 export default CourseQuiz;
+
 

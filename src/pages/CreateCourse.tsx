@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,8 +33,17 @@ interface Module {
 
 const CreateCourse = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  
+  useEffect(() => {
+    // Get current user from localStorage
+    const userData = localStorage.getItem('theology-user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
   
   // Course basic info
   const [courseInfo, setCourseInfo] = useState({
@@ -204,6 +213,11 @@ const CreateCourse = () => {
       return;
     }
 
+    if (!user) {
+      alert('User not found. Please log in again.');
+      return;
+    }
+
     setLoading(true);
     try {
       const courseData = {
@@ -213,13 +227,20 @@ const CreateCourse = () => {
         level: courseInfo.level,
         price: parseFloat(courseInfo.price) || 0,
         status: 'PENDING',
+        instructorId: user.id,
         modules: modules.map((module, index) => ({
           title: module.title,
           orderIndex: index,
           videoUrls: module.videos.map(v => v.url),
           materials: module.materials,
-          questions: module.questions,
-          assignment: module.assignment || undefined,
+          questions: module.questions.map(q => ({
+            ...q,
+            points: q.points || 10 // Add default points for questions
+          })),
+          assignment: module.assignment ? {
+            ...module.assignment,
+            points: module.assignment.points || 10 // Add default points for assignment
+          } : undefined,
         }))
       };
 

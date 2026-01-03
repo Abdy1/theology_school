@@ -4,7 +4,7 @@ import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Video, Users, FileText, ClipboardList } from 'lucide-react';
+import { PlusCircle, Video, Users, FileText, ClipboardList, Edit, Trash2 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8081';
 
@@ -29,11 +29,39 @@ interface AssignmentSubmissionRow {
   assignmentPassingPercent: number;
 }
 
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  durationMinutes: number;
+  level: string;
+  price: number;
+  status: string;
+  modules: any[];
+}
+
 const InstructorDashboard = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [submissions, setSubmissions] = useState<AssignmentSubmissionRow[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
+  const [showMyCourses, setShowMyCourses] = useState(false);
+
+  useEffect(() => {
+    // Get current user from AuthContext localStorage key
+    const userData = localStorage.getItem('theology-user');
+    console.log('Raw user data from localStorage:', userData);
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      console.log('Parsed user data:', parsedUser);
+      setUser(parsedUser);
+    } else {
+      console.log('No user data found in localStorage');
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -51,8 +79,70 @@ const InstructorDashboard = () => {
       }
     };
 
+    const fetchMyCourses = async () => {
+      if (!user) {
+        console.log('No user found, skipping course fetch');
+        return;
+      }
+      
+      console.log('Fetching courses for instructor ID:', user.id);
+      console.log('API URL:', `${API_BASE_URL}/api/courses/instructor/${user.id}`);
+      
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/courses/instructor/${user.id}`);
+        console.log('Response status:', resp.status);
+        console.log('Response ok:', resp.ok);
+        
+        if (!resp.ok) {
+          const errorText = await resp.text();
+          console.error('Error response:', errorText);
+          throw new Error('Failed to load courses');
+        }
+        const data = await resp.json();
+        console.log('Courses data:', data);
+        setCourses(data);
+      } catch (error) {
+        console.error('Failed to fetch courses', error);
+        console.error('Network error or CORS issue?');
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+
     fetchSubmissions();
-  }, []);
+    if (user) {
+      fetchMyCourses();
+    }
+  }, [user]);
+
+  const handleEditCourse = (courseId: number) => {
+    navigate(`/edit-course/${courseId}`);
+  };
+
+  const handleDeleteCourse = async (courseId: number) => {
+    if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+      return;
+    }
+
+    if (!user) return;
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/courses/${courseId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructorId: user.id })
+      });
+      
+      if (!resp.ok) {
+        throw new Error('Failed to delete course');
+      }
+
+      setCourses(courses.filter(course => course.id !== courseId));
+    } catch (error) {
+      console.error('Failed to delete course', error);
+      alert('Failed to delete course. Please try again.');
+    }
+  };
 
   const filteredSubmissions =
     statusFilter === 'ALL'
@@ -82,13 +172,19 @@ const InstructorDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setShowMyCourses(!showMyCourses)}
+          >
             <CardHeader>
               <Video className="h-8 w-8 text-primary" />
               <CardTitle>My Courses</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Manage existing courses</p>
+              <Badge variant="secondary" className="mt-2">
+                {courses.length} courses
+              </Badge>
             </CardContent>
           </Card>
 
@@ -112,6 +208,84 @@ const InstructorDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* My Courses Section */}
+        {showMyCourses && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Video className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold">My Courses</h2>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Courses you created</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {coursesLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading courses...</p>
+                ) : courses.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No courses created yet. Start by creating your first course!
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {courses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="border rounded-md p-4 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex-1">
+                          <h3 className="font-medium text-lg">{course.title}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                            {course.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>Level: {course.level}</span>
+                            <span>Duration: {course.durationMinutes} min</span>
+                            <span>Price: ${course.price}</span>
+                            <span>Modules: {course.modules?.length || 0}</span>
+                          </div>
+                          <div className="mt-2">
+                            <Badge
+                              variant={
+                                course.status === 'APPROVED'
+                                  ? 'default'
+                                  : course.status === 'REJECTED'
+                                  ? 'destructive'
+                                  : 'secondary'
+                              }
+                            >
+                              {course.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditCourse(course.id)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteCourse(course.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-2">

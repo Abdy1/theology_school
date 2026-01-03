@@ -47,8 +47,10 @@ router.get('/my', async (req, res) => {
       status: e.status,
       progressPercent: e.progressPercent,
     }));
-    console.log("thisis",view)
+    
     res.json(view);
+   
+   
   } catch (error) {
     console.error('List enrollments error', error);
     res.status(500).json({ message: 'Internal server error' });

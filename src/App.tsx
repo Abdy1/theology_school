@@ -18,6 +18,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import CreateCourse from "./pages/CreateCourse";
+import EditCourse from "./pages/EditCourse";
+import CertificateView from "@/pages/CertificateView";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import AssignmentReview from "./pages/AssignmentReview";
@@ -67,11 +69,19 @@ const App = () => (
               </ProtectedRoute>
             } />
             
+            <Route path="/edit-course/:courseId" element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <EditCourse />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/student" element={
               <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
                 <StudentDashboard />
               </ProtectedRoute>
             } />
+            
+            <Route path="/certificate/:certificateId" element={<CertificateView />} />
             
             <Route path="/unauthorized" element={<Unauthorized />} />
             

@@ -9,6 +9,7 @@ import adminRouter from './routes/admin';
 import uploadRouter from './routes/upload';
 import assignmentsRouter from './routes/assignments';
 import quizRouter from './routes/quiz';
+import certificatesRouter from './routes/certificates';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/assignments', assignmentsRouter);
 app.use('/api/quiz', quizRouter);
+app.use('/api/certificates', certificatesRouter);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

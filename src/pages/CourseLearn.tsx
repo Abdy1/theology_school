@@ -267,6 +267,9 @@ const CourseLearn = () => {
         description: 'Your instructor will review it soon.',
       });
 
+      // Close the dialog after successful submission
+      setAssignmentDialogModuleId(null);
+
       // Refresh status
       const statusResp = await fetch(
         `${API_BASE_URL}/api/assignments/${assignmentId}/my?enrollmentId=${enrollmentId}&userId=${user.id}`,
@@ -376,18 +379,26 @@ const CourseLearn = () => {
 
     setCertificateRequested(true);
     try {
+      const requestBody = {
+        userId: Number(user.id),
+        courseId: Number(courseId),
+      };
+      
+      console.log('Certificate request body:', requestBody);
+      
       const resp = await fetch(`${API_BASE_URL}/api/assignments/certificate/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId: Number(user.id),
-          courseId: Number(courseId),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('Certificate response status:', resp.status);
+      
       if (!resp.ok) {
+        const errorText = await resp.text();
+        console.error('Certificate error response:', errorText);
         throw new Error('Certificate generation failed');
       }
 
@@ -397,6 +408,9 @@ const CourseLearn = () => {
         title: 'Certificate generated!',
         description: 'Your certificate has been generated successfully.',
       });
+
+      // Redirect to certificate view page
+      navigate(`/certificate/${result.certificate.certificateId}`);
 
       // Refresh enrollment grade
       await fetchEnrollmentGrade();

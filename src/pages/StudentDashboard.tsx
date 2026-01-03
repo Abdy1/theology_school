@@ -29,7 +29,10 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/certificates')}
+          >
             <CardHeader>
               <Award className="h-8 w-8 text-primary" />
               <CardTitle>Certificates</CardTitle>
