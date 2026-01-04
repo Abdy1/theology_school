@@ -23,6 +23,10 @@ import CertificateView from "@/pages/CertificateView";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import AssignmentReview from "./pages/AssignmentReview";
+import Library from "./pages/Library";
+import BookDetail from "./pages/BookDetail";
+import MyLibrary from "./pages/MyLibrary";
+import BookReader from "./pages/BookReader";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +53,20 @@ const App = () => (
             } />
             
             <Route path="/contact" element={<Contact />} />
+            
+            {/* Library Routes - Public Access */}
+            <Route path="/library" element={<Library />} />
+            <Route path="/library/book/:bookId" element={<BookDetail />} />
+            <Route path="/library/book/:bookId/read" element={
+              <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
+                <BookReader />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-library" element={
+              <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
+                <MyLibrary />
+              </ProtectedRoute>
+            } />
             
             {/* Role-based routes */}
             <Route path="/admin" element={

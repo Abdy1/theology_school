@@ -11,6 +11,7 @@ import assignmentsRouter from './routes/assignments';
 import quizRouter from './routes/quiz';
 import certificatesRouter from './routes/certificates';
 import videoUploadRouter from './routes/video-upload';
+import booksRouter from './routes/books';
 
 const app = express();
 
@@ -32,9 +33,16 @@ app.use('/api/assignments', assignmentsRouter);
 app.use('/api/quiz', quizRouter);
 app.use('/api/certificates', certificatesRouter);
 app.use('/api/upload/video', videoUploadRouter);
+app.use('/api/books', booksRouter);
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
+  setHeaders: (res, path, stat) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+  }
+}));
 
 const PORT = 8081;
 

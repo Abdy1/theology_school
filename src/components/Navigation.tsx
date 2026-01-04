@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { BookOpen, LogOut } from 'lucide-react';
+import { BookOpen, LogOut, Library, User } from 'lucide-react';
 
 export const Navigation = () => {
   const { user, logout, isAdmin, isTeacher, isStudent } = useAuth();
@@ -26,6 +26,14 @@ export const Navigation = () => {
         <div className="flex items-center space-x-6">
           {user ? (
             <>
+              <Link to="/library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
+                <Library className="h-4 w-4" />
+                Library
+              </Link>
+              <Link to="/my-library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
+                <User className="h-4 w-4" />
+                My Books
+              </Link>
               {isLandingPage && (
                 <>
                   <Link to="/courses" className="text-foreground hover:text-primary transition-colors">
@@ -44,6 +52,10 @@ export const Navigation = () => {
             </>
           ) : (
             <>
+              <Link to="/library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
+                <Library className="h-4 w-4" />
+                Library
+              </Link>
               {isLandingPage && (
                 <>
                   <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
