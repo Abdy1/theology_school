@@ -10,6 +10,7 @@ import uploadRouter from './routes/upload';
 import assignmentsRouter from './routes/assignments';
 import quizRouter from './routes/quiz';
 import certificatesRouter from './routes/certificates';
+import videoUploadRouter from './routes/video-upload';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/assignments', assignmentsRouter);
 app.use('/api/quiz', quizRouter);
 app.use('/api/certificates', certificatesRouter);
+app.use('/api/upload/video', videoUploadRouter);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

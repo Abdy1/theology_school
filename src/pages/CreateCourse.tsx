@@ -15,7 +15,7 @@ const API_BASE_URL = 'http://localhost:8081';
 interface Module {
   id: string;
   title: string;
-  videos: { id: string; url: string; title: string }[];
+  videos: { id: string; url: string; title: string; type: 'youtube' | 'upload'; subtitleUrl?: string }[];
   materials: { id: string; title: string; url: string; fileType: string }[];
   questions: {
     id: string;
@@ -60,7 +60,10 @@ const CreateCourse = () => {
   // Form states for adding items
   const [newModuleTitle, setNewModuleTitle] = useState('');
   const [selectedModuleId, setSelectedModuleId] = useState('');
-  const [newVideo, setNewVideo] = useState({ url: '', title: '' });
+  const [newVideo, setNewVideo] = useState({ url: '', title: '', type: 'youtube' });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [subtitleFile, setSubtitleFile] = useState<File | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [newMaterial, setNewMaterial] = useState({ title: '', url: '', fileType: '' });
   const [newQuestion, setNewQuestion] = useState({
     questionText: '',
@@ -112,8 +115,68 @@ const CreateCourse = () => {
     setModules(modules.filter(m => m.id !== moduleId));
   };
 
-  const addVideo = () => {
-    if (!selectedModuleId || !newVideo.url.trim() || !newVideo.title.trim()) return;
+  const addVideo = async () => {
+    if (!selectedModuleId || !newVideo.title.trim()) {
+      return;
+    }
+    
+    let videoUrl = newVideo.url;
+    let subtitleUrl = '';
+    
+    // Handle file upload
+    if (newVideo.type === 'upload' && videoFile) {
+      setUploadingVideo(true);
+      
+      try {
+        // Upload video file
+        const videoFormData = new FormData();
+        videoFormData.append('video', videoFile);
+        
+        const videoResponse = await fetch(`${API_BASE_URL}/api/upload/video`, {
+          method: 'POST',
+          body: videoFormData
+        });
+        
+        if (!videoResponse.ok) {
+          const errorText = await videoResponse.text();
+          throw new Error(`Video upload failed: ${videoResponse.status} ${errorText}`);
+        }
+        
+        const videoResult = await videoResponse.json();
+        videoUrl = videoResult.url;
+        
+        // Upload subtitle file if provided
+        if (subtitleFile) {
+          const subtitleFormData = new FormData();
+          subtitleFormData.append('subtitle', subtitleFile);
+          
+          const subtitleResponse = await fetch(`${API_BASE_URL}/api/upload/subtitle`, {
+            method: 'POST',
+            body: subtitleFormData
+          });
+          
+          if (subtitleResponse.ok) {
+            const subtitleResult = await subtitleResponse.json();
+            subtitleUrl = subtitleResult.url;
+          } else {
+            console.warn('Subtitle upload failed, but video was uploaded successfully');
+          }
+        }
+        
+      } catch (error) {
+        console.error('Video upload error:', error);
+        alert('Failed to upload video. Please try again.');
+        setUploadingVideo(false);
+        return;
+      }
+      setUploadingVideo(false);
+    }
+    
+    // Validate URL for YouTube type
+    if (newVideo.type === 'youtube' && !videoUrl.trim()) {
+      alert('Please enter a YouTube URL');
+      return;
+    }
     
     setModules(modules.map(module => 
       module.id === selectedModuleId 
@@ -121,14 +184,18 @@ const CreateCourse = () => {
             ...module,
             videos: [...module.videos, { 
               id: Date.now().toString(), 
-              url: newVideo.url, 
-              title: newVideo.title 
+              url: videoUrl, 
+              title: newVideo.title,
+              type: newVideo.type,
+              subtitleUrl: subtitleUrl || undefined
             }]
           }
         : module
     ));
     
-    setNewVideo({ url: '', title: '' });
+    setNewVideo({ url: '', title: '', type: 'youtube' });
+    setVideoFile(null);
+    setSubtitleFile(null);
   };
 
   const addMaterial = () => {
@@ -427,7 +494,7 @@ const CreateCourse = () => {
                         <div className="grid grid-cols-3 gap-2 mb-4">
                           <Badge variant="secondary">
                             <Video className="h-3 w-3 mr-1" />
-                            {module.videos.length} Videos
+                            {module.videos.length} Videos ({module.videos.filter(v => v.type === 'youtube').length} YouTube, {module.videos.filter(v => v.type === 'upload').length} Uploaded)
                           </Badge>
                           <Badge variant="secondary">
                             <FileText className="h-3 w-3 mr-1" />
@@ -468,19 +535,108 @@ const CreateCourse = () => {
                   {/* Add Video */}
                   <div>
                     <h4 className="font-medium mb-2">Add Video</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    
+                    {/* Video Type Selection */}
+                    <div className="space-y-2 mb-3">
+                      <Label>Video Source</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={newVideo.type === 'youtube' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setNewVideo(prev => ({ ...prev, type: 'youtube' }))}
+                        >
+                          <Video className="h-4 w-4 mr-2" />
+                          YouTube URL
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={newVideo.type === 'upload' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setNewVideo(prev => ({ ...prev, type: 'upload' }))}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Video
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
                       <Input
                         placeholder="Video title"
                         value={newVideo.title}
                         onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
                       />
-                      <Input
-                        placeholder="YouTube URL"
-                        value={newVideo.url}
-                        onChange={(e) => setNewVideo(prev => ({ ...prev, url: e.target.value }))}
-                      />
-                      <Button onClick={addVideo} disabled={!newVideo.url.trim() || !newVideo.title.trim()}>
-                        <PlusCircle className="h-4 w-4" />
+                      
+                      {newVideo.type === 'youtube' ? (
+                        <Input
+                          placeholder="YouTube URL (e.g., https://www.youtube.com/watch?v=...)"
+                          value={newVideo.url}
+                          onChange={(e) => setNewVideo(prev => ({ ...prev, url: e.target.value }))}
+                        />
+                      ) : (
+                        <div className="space-y-2">
+                          <Input
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setVideoFile(file);
+                                setNewVideo(prev => ({ ...prev, url: file.name }));
+                              } else {
+                                setVideoFile(null);
+                              }
+                            }}
+                          />
+                          {videoFile && (
+                            <div className="text-sm text-muted-foreground">
+                              Selected: {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(2)} MB)
+                            </div>
+                          )}
+                          
+                          {/* Subtitle Upload */}
+                          <div className="border-t pt-2">
+                            <Label className="text-sm text-muted-foreground">Subtitle File (Optional)</Label>
+                            <Input
+                              type="file"
+                              accept=".vtt"
+                              placeholder="Upload subtitle file (.vtt)"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setSubtitleFile(file);
+                                } else {
+                                  setSubtitleFile(null);
+                                }
+                              }}
+                              className="mt-1"
+                            />
+                            {subtitleFile && (
+                              <div className="text-sm text-muted-foreground">
+                                Subtitle: {subtitleFile.name}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Button 
+                        onClick={addVideo} 
+                        disabled={!newVideo.title.trim() || (newVideo.type === 'youtube' ? !newVideo.url.trim() : !videoFile) || uploadingVideo}
+                        className="w-full"
+                      >
+                        {uploadingVideo ? (
+                          <>
+                            <Upload className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <PlusCircle className="h-4 w-4 mr-2" />
+                            Add Video
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -705,3 +861,5 @@ const CreateCourse = () => {
 };
 
 export default CreateCourse;
+
+

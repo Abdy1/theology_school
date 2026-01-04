@@ -81,29 +81,19 @@ const InstructorDashboard = () => {
 
     const fetchMyCourses = async () => {
       if (!user) {
-        console.log('No user found, skipping course fetch');
         return;
       }
       
-      console.log('Fetching courses for instructor ID:', user.id);
-      console.log('API URL:', `${API_BASE_URL}/api/courses/instructor/${user.id}`);
-      
       try {
         const resp = await fetch(`${API_BASE_URL}/api/courses/instructor/${user.id}`);
-        console.log('Response status:', resp.status);
-        console.log('Response ok:', resp.ok);
-        
         if (!resp.ok) {
           const errorText = await resp.text();
-          console.error('Error response:', errorText);
           throw new Error('Failed to load courses');
         }
         const data = await resp.json();
-        console.log('Courses data:', data);
         setCourses(data);
       } catch (error) {
         console.error('Failed to fetch courses', error);
-        console.error('Network error or CORS issue?');
       } finally {
         setCoursesLoading(false);
       }

@@ -12,14 +12,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import VideoPlayer from '@/components/VideoPlayer';
 
 const API_BASE_URL = 'http://localhost:8081';
 
-// Convert various video URLs into embeddable, cookie-friendly versions.
-// This helps avoid Google/YouTube redirect loops inside iframes.
+// Convert various video URLs into proper format for VideoPlayer
 const normalizeVideoUrl = (url: string) => {
   if (!url) return url;
   try {
+    // Handle uploaded videos (local files)
+    if (url.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${url}`;
+    }
+    
     // Handle YouTube watch links and short links
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       const urlObj = new URL(url);
@@ -126,10 +131,11 @@ const CourseLearn = () => {
   const videos = useMemo(
     () =>
       course?.modules?.flatMap((module: any, moduleIndex: number) =>
-        module.videoUrls?.map((videoUrl: string, videoIndex: number) => ({
+        module.videos?.map((video: any, videoIndex: number) => ({
           id: `module-${moduleIndex}-video-${videoIndex}`,
-          title: module.title,
-          videoUrl,
+          title: video.title,
+          videoUrl: video.url,
+          type: video.type,
           moduleIndex,
         })) || [],
       ) || [],
@@ -532,18 +538,30 @@ const CourseLearn = () => {
 
         <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
           <Card className="overflow-hidden">
-            <div className="aspect-video bg-muted flex items-center justify-center">
+            <div className="w-full" style={{ minHeight: '500px' }}>
               {activeVideo ? (
-                <iframe
-                  className="w-full h-full"
-                  src={normalizeVideoUrl(activeVideo.videoUrl)}
+                <VideoPlayer
+                  videoUrl={activeVideo.videoUrl}
                   title={activeVideo.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                  onVideoComplete={() => {
+                    // Auto-mark video as completed
+                    if (!completedVideoIds.has(activeVideo.id)) {
+                      setCompletedVideoIds(prev => new Set([...prev, activeVideo.id]));
+                      toast({
+                        title: 'Video completed!',
+                        description: `"${activeVideo.title}" has been marked as completed.`,
+                      });
+                    }
+                  }}
+                  onProgress={(currentTime, duration) => {
+                    // Optionally track progress to backend
+                    console.log(`Video progress: ${currentTime}/${duration}`);
+                  }}
+                  disableFastForward={true}
+                  autoMarkComplete={true}
                 />
               ) : (
-                <div className="text-center">
+                <div className="text-center py-20">
                   <Play className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-muted-foreground">No video available</p>
                 </div>
@@ -582,7 +600,7 @@ const CourseLearn = () => {
                     <div>
                       <CardTitle className="text-lg">{module.title}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {module.videoUrls?.length || 0} video(s) · {module.materials?.length || 0} material(s) · {module.questions?.length || 0} question(s)
+                        {module.videos?.length || 0} video(s) · {module.materials?.length || 0} material(s) · {module.questions?.length || 0} question(s)
                       </p>
                     </div>
                     <Badge variant="secondary">Module {moduleIndex + 1}</Badge>
@@ -594,8 +612,8 @@ const CourseLearn = () => {
                     <p className="font-semibold flex items-center gap-2">
                       <Play className="h-4 w-4" /> Videos
                     </p>
-                    {module.videoUrls?.length ? (
-                      module.videoUrls.map((videoUrl: string, videoIndex: number) => {
+                    {module.videos?.length ? (
+                      module.videos.map((video: any, videoIndex: number) => {
                         const id = `module-${moduleIndex}-video-${videoIndex}`;
                         const isActive = activeVideo?.id === id;
                         const isCompleted = completedVideoIds.has(id);
@@ -608,7 +626,7 @@ const CourseLearn = () => {
                           >
                             <div>
                               <p className={`font-medium ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                                {module.title}
+                                {video.title}
                               </p>
                               <p className="text-xs text-muted-foreground">Video {videoIndex + 1}</p>
                             </div>

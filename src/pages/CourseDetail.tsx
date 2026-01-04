@@ -79,14 +79,21 @@ const CourseDetail = () => {
         <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
           <Card className="overflow-hidden">
             <div className="aspect-video bg-muted flex items-center justify-center">
-              {course.modules && course.modules.length > 0 && course.modules[0].videoUrls && course.modules[0].videoUrls.length > 0 ? (
+              {course.modules && course.modules.length > 0 && course.modules[0].videos && course.modules[0].videos.length > 0 ? (
                 <iframe
                   className="w-full h-full"
-                  src={course.modules[0].videoUrls[0].replace('watch?v=', 'embed/').replace('youtube.com', 'youtube-nocookie.com')}
-                  title={course.modules[0].title}
+                  src={course.modules[0].videos[0].url.replace('watch?v=', 'embed/').replace('youtube.com', 'youtube-nocookie.com') + '?rel=0&modestbranding=1&enablejsapi=1'}
+                  title={course.modules[0].videos[0].title}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  style={{ minHeight: '500px' }}
+                  onError={() => {
+                    console.error('YouTube iframe failed to load');
+                  }}
+                  onLoad={() => {
+                    console.log('YouTube iframe loaded successfully');
+                  }}
                 />
               ) : (
                 <div className="text-center">
