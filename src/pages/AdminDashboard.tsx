@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { Users, BookOpen, Settings, TrendingUp, UserPlus, CheckCircle, XCircle, 
 const API_BASE_URL = 'http://localhost:8081';
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const [summary, setSummary] = useState<any>(null);
   const [pendingCourses, setPendingCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -241,59 +243,59 @@ const AdminDashboard = () => {
       <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage users, courses, and platform settings</p>
+          <h1 className="text-4xl font-bold text-primary">{t('dashboard:adminDashboard')}</h1>
+          <p className="text-muted-foreground">{t('dashboard:manageSystemAndUsers')}</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard:totalUsers')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary?.users.total || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {summary?.users.students || 0} students, {summary?.users.teachers || 0} teachers
+                {t('dashboard:studentsAndTeachers', { students: summary?.users.students || 0, teachers: summary?.users.teachers || 0 })}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard:totalCourses')}</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary?.courses.total || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {summary?.courses.active || 0} active, {summary?.courses.pending || 0} pending
+                {t('dashboard:activeAndPending', { active: summary?.courses.active || 0, pending: summary?.courses.pending || 0 })}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Enrollments</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard:totalEnrollments')}</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary?.enrollments.total || 0}</div>
               <p className="text-xs text-muted-foreground">
-                {summary?.enrollments.completed || 0} completed
+                {t('dashboard:completed', { completed: summary?.enrollments.completed || 0 })}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Progress</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard:avgProgress')}</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary?.enrollments.average_progress || 0}%</div>
-              <p className="text-xs text-muted-foreground">Across all enrollments</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard:acrossAllEnrollments')}</p>
             </CardContent>
           </Card>
         </div>
@@ -304,7 +306,7 @@ const AdminDashboard = () => {
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <UserPlus className="h-4 w-4" />
-                Add Teacher
+                {t('dashboard:addTeacher')}
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -366,10 +368,10 @@ const AdminDashboard = () => {
           </Dialog>
 
           <Dialog open={showAddBook} onOpenChange={setShowAddBook}>
-            <DialogTrigger asChild>
+                <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
-                Upload Book
+                {t('dashboard:uploadBook')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -554,7 +556,7 @@ const AdminDashboard = () => {
                     ) : (
                       <>
                         <Upload className="h-4 w-4 mr-2" />
-                        Upload Book
+                        {t('dashboard:uploadBook')}
                       </>
                     )}
                   </Button>
@@ -569,12 +571,12 @@ const AdminDashboard = () => {
 
         {/* Pending Courses */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-primary mb-4">Pending Courses ({pendingCourses.length})</h2>
+          <h2 className="text-2xl font-bold text-primary mb-4">{t('dashboard:pendingCoursesWithCount', { count: pendingCourses.length })}</h2>
           
           {pendingCourses.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
-                <p className="text-muted-foreground">No pending courses to review</p>
+                <p className="text-muted-foreground">{t('dashboard:noPendingCourses')}</p>
               </CardContent>
             </Card>
           ) : (
@@ -587,7 +589,7 @@ const AdminDashboard = () => {
                         <CardTitle className="text-lg">{course.title}</CardTitle>
                         <p className="text-muted-foreground">{course.description}</p>
                       </div>
-                      <Badge variant="secondary">PENDING</Badge>
+                      <Badge variant="secondary">{t('dashboard:pending')}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -630,8 +632,8 @@ const AdminDashboard = () => {
             <Card>
               <CardContent className="text-center py-8">
                 <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No books uploaded yet</p>
-                <p className="text-sm text-muted-foreground">Click "Upload Book" to add your first book</p>
+                <p className="text-muted-foreground">{t('dashboard:noBooksUploaded')}</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard:clickUploadBook')}</p>
               </CardContent>
             </Card>
           ) : (

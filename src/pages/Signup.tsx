@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { Navigation } from '@/components/Navigation';
 import { useToast } from '@/hooks/use-toast';
 
 const Signup = () => {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone_number, setPhone_number] = useState('');
@@ -21,10 +23,10 @@ const Signup = () => {
     e.preventDefault();
     try {
       await signup(email, password, name, phone_number);
-      toast({ title: 'Welcome!', description: 'Account created successfully.' });
+      toast({ title: t('auth:welcome'), description: t('auth:accountCreatedSuccessfully') });
       navigate('/courses');
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to create account', variant: 'destructive' });
+      toast({ title: t('common:error'), description: t('auth:failedToCreateAccount'), variant: 'destructive' });
     }
   };
 
@@ -34,13 +36,13 @@ const Signup = () => {
       <div className="container mx-auto flex items-center justify-center px-4 py-16">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Create Account</CardTitle>
-            <CardDescription>Sign up to start your theology education journey</CardDescription>
+            <CardTitle>{t('auth:createAccount')}</CardTitle>
+            <CardDescription>{t('auth:signUpToStart')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">{t('auth:fullName')}</Label>
                 <Input
                   id="name"
                   type="text"
@@ -51,7 +53,7 @@ const Signup = () => {
                 />
               </div>
                   <div className="space-y-2">
-                <Label htmlFor="phone_number">Phone NUmber</Label>
+                <Label htmlFor="phone_number">{t('auth:phoneNumber')}</Label>
                 <Input
                   id="phone_number"
                   type="text"
@@ -62,7 +64,7 @@ const Signup = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth:emailAddress')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -73,7 +75,7 @@ const Signup = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('auth:password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -84,12 +86,12 @@ const Signup = () => {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Sign Up
+                {t('auth:signup')}
               </Button>
               <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{' '}
+                {t('auth:alreadyHaveAccount')}{' '}
                 <Link to="/login" className="text-primary hover:underline">
-                  Login
+                  {t('auth:login')}
                 </Link>
               </p>
             </form>

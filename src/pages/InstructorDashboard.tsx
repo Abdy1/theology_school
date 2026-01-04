@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ interface Course {
 }
 
 const InstructorDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [submissions, setSubmissions] = useState<AssignmentSubmissionRow[]>([]);
@@ -144,8 +146,8 @@ const InstructorDashboard = () => {
       <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary">Instructor Dashboard</h1>
-          <p className="text-muted-foreground">Create courses and review student work</p>
+          <h1 className="text-4xl font-bold text-primary">{t('dashboard:instructorDashboard')}</h1>
+          <p className="text-muted-foreground">{t('dashboard:manageCoursesAndStudents')}</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -155,7 +157,7 @@ const InstructorDashboard = () => {
           >
             <CardHeader>
               <PlusCircle className="h-8 w-8 text-primary" />
-              <CardTitle>Create Course</CardTitle>
+              <CardTitle>{t('dashboard:createCourse')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Start building a new course</p>
@@ -168,7 +170,7 @@ const InstructorDashboard = () => {
           >
             <CardHeader>
               <Video className="h-8 w-8 text-primary" />
-              <CardTitle>My Courses</CardTitle>
+              <CardTitle>{t('dashboard:myCourses')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Manage existing courses</p>
@@ -204,7 +206,7 @@ const InstructorDashboard = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Video className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold">My Courses</h2>
+              <h2 className="text-xl font-semibold">{t('dashboard:myCourses')}</h2>
             </div>
 
             <Card>
