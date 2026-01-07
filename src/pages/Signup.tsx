@@ -15,9 +15,21 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [phone_number, setPhone_number] = useState('');
   const [password, setPassword] = useState('');
-  const { signup } = useAuth();
+  const { signup, user, isLoading, isStudent, isTeacher, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect logged-in users to their dashboard
+  if (!isLoading && user) {
+    if (isStudent) {
+      navigate('/student');
+    } else if (isTeacher) {
+      navigate('/instructor');
+    } else if (isAdmin) {
+      navigate('/admin');
+    }
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

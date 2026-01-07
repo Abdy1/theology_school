@@ -15,9 +15,21 @@ const Login = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isAdmin, isTeacher, isStudent } = useAuth();
+  const { login, user, isLoading, isAdmin, isTeacher, isStudent } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect logged-in users to their dashboard
+  if (!isLoading && user) {
+    if (isStudent) {
+      navigate('/student');
+    } else if (isTeacher) {
+      navigate('/instructor');
+    } else if (isAdmin) {
+      navigate('/admin');
+    }
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

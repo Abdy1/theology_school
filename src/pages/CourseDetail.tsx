@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ const CourseDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <Breadcrumb />
         <div className="container mx-auto px-4 py-8">
           <p className="text-muted-foreground">Course not found.</p>
         </div>
@@ -69,6 +71,7 @@ const CourseDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumb />
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div>
           <Button variant="outline" onClick={() => navigate('/courses')}>

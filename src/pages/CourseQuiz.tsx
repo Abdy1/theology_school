@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -147,7 +148,15 @@ const CourseQuiz = () => {
   };
 
   if (loading || isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <Breadcrumb />
+        <div className="container mx-auto px-4 py-8">
+          <div>Loading...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -158,6 +167,7 @@ const CourseQuiz = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <Breadcrumb />
         <div className="container mx-auto px-4 py-8">
           <p className="text-muted-foreground">Module not found.</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate(`/courses/${courseId}/learn`)}>
@@ -171,6 +181,7 @@ const CourseQuiz = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumb />
       <div className="container mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>

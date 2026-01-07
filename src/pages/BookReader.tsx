@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
@@ -217,6 +218,7 @@ const BookReader = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <Breadcrumb />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Loading book...</div>
         </div>
@@ -228,6 +230,7 @@ const BookReader = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <Breadcrumb />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Book not found or access denied</div>
         </div>
@@ -238,6 +241,7 @@ const BookReader = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumb />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

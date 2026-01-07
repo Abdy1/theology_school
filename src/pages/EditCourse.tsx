@@ -57,7 +57,7 @@ const EditCourse = () => {
     title: '',
     description: '',
     durationMinutes: 0,
-    level: 'BEGINNER',
+    level: 'CERTIFICATE',
     price: 0,
     status: 'PENDING',
     modules: [] as Module[]
@@ -283,9 +283,9 @@ const EditCourse = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="BEGINNER">Beginner</SelectItem>
-                      <SelectItem value="INTERMEDIATE">Intermediate</SelectItem>
-                      <SelectItem value="ADVANCED">Advanced</SelectItem>
+                      <SelectItem value="CERTIFICATE">Certificate</SelectItem>
+                      <SelectItem value="DIPLOMA">Diploma</SelectItem>
+                      <SelectItem value="DEGREE">Degree</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -2,11 +2,18 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Play } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8081';
+
+// Utility function to truncate text
+const truncateText = (text: string, maxLength: number = 120) => {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + '...';
+};
 
 const Courses = () => {
   const { user, isLoading } = useAuth();
@@ -65,6 +72,7 @@ const Courses = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumb />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -88,15 +96,17 @@ const Courses = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCourses.map((course) => (
-            <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardHeader>
+            <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+              <CardHeader className="flex-grow">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-xl">{course.title}</CardTitle>
-                  <Badge variant="secondary">{course.durationMinutes} min</Badge>
+                  <CardTitle className="text-xl line-clamp-2">{course.title}</CardTitle>
+                  <Badge variant="secondary" className="shrink-0">{course.durationMinutes} min</Badge>
                 </div>
-                <CardDescription>{course.description}</CardDescription>
+                <CardDescription className="line-clamp-3">
+                  {truncateText(course.description, 150)}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="flex items-center justify-between">
+              <CardContent className="flex items-center justify-between mt-auto">
                 <p className="text-sm text-muted-foreground">{course.level}</p>
                 <Link
                   to={`/courses/${course.id}`}

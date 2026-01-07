@@ -5,5 +5,11 @@
   "contact": "Contact",
   "login": "Login",
   "getStarted": "Get Started",
-  "logout": "Logout"
+  "logout": "Logout",
+  "myDashboard": "My Dashboard",
+  "dashboard": "Dashboard",
+  "myCourses": "My Courses",
+  "learning": "Learning",
+  "quiz": "Quiz",
+  "reading": "Reading"
 }

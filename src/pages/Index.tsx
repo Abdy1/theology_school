@@ -4,9 +4,25 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Users, Award, Video } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const { t } = useTranslation();
+  const { user, isLoading, isStudent, isTeacher, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect logged-in users to their dashboard
+  if (!isLoading && user) {
+    if (isStudent) {
+      navigate('/student');
+    } else if (isTeacher) {
+      navigate('/instructor');
+    } else if (isAdmin) {
+      navigate('/admin');
+    }
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">

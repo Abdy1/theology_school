@@ -5,5 +5,11 @@
   "contact": "ርኣይ",
   "login": "መእተዊ",
   "getStarted": "ንምሽወዓ",
-  "logout": "ወጻእ"
+  "logout": "ወጻእ",
+  "myDashboard": "ዳሽቦርደይ",
+  "dashboard": "ዳሽቦርድ",
+  "myCourses": "ኮርሶታይ",
+  "learning": "መማርር",
+  "quiz": "ፍሊዝ",
+  "reading": "ማንብ"
 }

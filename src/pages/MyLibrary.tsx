@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -105,6 +106,7 @@ const MyLibrary = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+        <Breadcrumb />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Loading your library...</div>
         </div>
@@ -115,6 +117,7 @@ const MyLibrary = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumb />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button 

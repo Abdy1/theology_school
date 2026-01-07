@@ -1,0 +1,11 @@
+{
+  "admin": "Administrator",
+  "instructor": "Instructor",
+  "student": "Student",
+  "user": "User",
+  "dashboard": "Dashboard",
+  "myCourses": "My Courses",
+  "myLibrary": "My Library",
+  "settings": "Settings",
+  "logout": "Logout"
+}

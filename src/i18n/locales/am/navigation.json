@@ -5,5 +5,11 @@
   "contact": "ንንግ",
   "login": "መእተለት",
   "getStarted": "ጀምር",
-  "logout": "ውጥት"
+  "logout": "ውጥት",
+  "myDashboard": "ዳሽቦርዴቴ",
+  "dashboard": "ዳሽቦርድ",
+  "myCourses": "ኮርሶቼ",
+  "learning": "መማርር",
+  "quiz": "ፍሊዝ",
+  "reading": "ማንብ"
 }

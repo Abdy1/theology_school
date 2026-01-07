@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Play, ClipboardList } from 'lucide-react';
+import { Download, Play, ClipboardList, ChevronDown, ChevronRight, CheckCircle, Circle, Clock, BookOpen, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import VideoPlayer from '@/components/VideoPlayer';
+import { cn } from '@/lib/utils';
 
 const API_BASE_URL = 'http://localhost:8081';
 
@@ -78,6 +80,7 @@ const CourseLearn = () => {
   const [assignmentStatus, setAssignmentStatus] = useState<Record<number, any>>({});
   const [enrollmentGrade, setEnrollmentGrade] = useState<any>(null);
   const [certificateRequested, setCertificateRequested] = useState(false);
+  const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -145,6 +148,47 @@ const CourseLearn = () => {
   const totalVideos = videos.length;
   const progressPercent = totalVideos ? Math.round((completedVideoIds.size / totalVideos) * 100) : 0;
 
+  // Toggle module expansion
+  const toggleModuleExpansion = (moduleId: number) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId);
+      } else {
+        newSet.add(moduleId);
+      }
+      return newSet;
+    });
+  };
+
+  // Calculate module progress
+  const getModuleProgress = (module: any, moduleIndex: number) => {
+    const moduleVideos = module.videos || [];
+    if (moduleVideos.length === 0) return 0;
+    
+    const completedCount = moduleVideos.filter((_: any, videoIndex: number) => {
+      const videoId = `module-${moduleIndex}-video-${videoIndex}`;
+      return completedVideoIds.has(videoId);
+    }).length;
+    
+    return Math.round((completedCount / moduleVideos.length) * 100);
+  };
+
+  // Get module status
+  const getModuleStatus = (module: any, moduleIndex: number) => {
+    const progress = getModuleProgress(module, moduleIndex);
+    const hasAssignment = module.assignment;
+    const hasQuiz = module.questions && module.questions.length > 0;
+    
+    if (progress === 100 && (!hasAssignment || assignmentStatus[module.assignment.id]?.status === 'APPROVED') && (!hasQuiz)) {
+      return 'completed';
+    } else if (progress > 0) {
+      return 'in-progress';
+    } else {
+      return 'not-started';
+    }
+  };
+
   // Initialize completed videos and current video from enrollment progress
   useEffect(() => {
     if (initializedFromEnrollment || !videos.length) return;
@@ -156,19 +200,16 @@ const CourseLearn = () => {
       );
 
       if (videosToMark > 0) {
-        const newSet = new Set<string>();
+        const newCompletedIds = new Set<string>();
         for (let i = 0; i < videosToMark; i++) {
-          newSet.add(videos[i].id);
+          newCompletedIds.add(videos[i].id);
         }
-        setCompletedVideoIds(newSet);
-
-        const nextIndex = videosToMark < videos.length ? videosToMark : videos.length - 1;
-        setSelectedVideoId(videos[nextIndex].id);
-      } else if (!selectedVideoId && videos[0]) {
-        setSelectedVideoId(videos[0].id);
+        setCompletedVideoIds(newCompletedIds);
+        setSelectedVideoId(videos[videosToMark - 1]?.id || videos[0]?.id);
       }
-    } else if (!selectedVideoId && videos[0]) {
-      setSelectedVideoId(videos[0].id);
+    } else {
+      // If no progress, start from beginning
+      setSelectedVideoId(videos[0]?.id || null);
     }
 
     setInitializedFromEnrollment(true);
@@ -515,10 +556,11 @@ const CourseLearn = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumb />
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => navigate(`/courses/${courseId}`)}>
-            Back to course overview
+          <Button variant="outline" onClick={() => navigate('/my-courses')}>
+            Back to My Courses
           </Button>
           <div className="flex items-center gap-4">
             {progressPercent === 100 && enrollmentGrade && (
@@ -592,122 +634,214 @@ const CourseLearn = () => {
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
-            {course?.modules?.map((module: any, moduleIndex: number) => (
-              <Card key={module.id ?? moduleIndex} className="divide-y">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{module.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {module.videos?.length || 0} video(s) · {module.materials?.length || 0} material(s) · {module.questions?.length || 0} question(s)
-                      </p>
-                    </div>
-                    <Badge variant="secondary">Module {moduleIndex + 1}</Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <p className="font-semibold flex items-center gap-2">
-                      <Play className="h-4 w-4" /> Videos
-                    </p>
-                    {module.videos?.length ? (
-                      module.videos.map((video: any, videoIndex: number) => {
-                        const id = `module-${moduleIndex}-video-${videoIndex}`;
-                        const isActive = activeVideo?.id === id;
-                        const isCompleted = completedVideoIds.has(id);
-                        return (
-                          <div
-                            key={id}
-                            className={`flex items-center justify-between rounded-md border px-3 py-2 ${
-                              isCompleted ? 'bg-muted border-primary/60' : ''
-                            }`}
-                          >
-                            <div>
-                              <p className={`font-medium ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                                {video.title}
-                              </p>
-                              <p className="text-xs text-muted-foreground">Video {videoIndex + 1}</p>
-                            </div>
-                            <Button
-                              variant={isActive ? 'default' : isCompleted ? 'outline' : 'ghost'}
-                              size="sm"
-                              onClick={() => setSelectedVideoId(id)}
-                            >
-                              {isActive ? 'Watching' : isCompleted ? 'Replay' : 'Watch'}
-                            </Button>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No videos in this module.</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <p className="font-semibold flex items-center gap-2">
-                      <Download className="h-4 w-4" /> Materials
-                    </p>
-                    {module.materials?.length ? (
-                      module.materials.map((resource: any) => (
-                        <div key={resource.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                          <div>
-                            <p className="font-medium">{resource.title}</p>
-                            <p className="text-xs text-muted-foreground">{resource.fileType || 'File'}</p>
-                          </div>
-                          <Button asChild variant="outline" size="sm">
-                            <a href={resource.url} target="_blank" rel="noreferrer">
-                              Download
-                            </a>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Course Content
+              </h2>
+              <Badge variant="outline" className="text-sm">
+                {progressPercent}% Complete
+              </Badge>
+            </div>
+            
+            {course?.modules?.map((module: any, moduleIndex: number) => {
+              const moduleProgress = getModuleProgress(module, moduleIndex);
+              const moduleStatus = getModuleStatus(module, moduleIndex);
+              const isExpanded = expandedModules.has(module.id || moduleIndex);
+              const moduleVideos = module.videos || [];
+              const moduleMaterials = module.materials || [];
+              const hasAssignment = !!module.assignment;
+              const hasQuiz = module.questions && module.questions.length > 0;
+              
+              return (
+                <Card key={module.id ?? moduleIndex} className="overflow-hidden border-l-4 transition-all duration-200 hover:shadow-md" 
+                      style={{ 
+                        borderLeftColor: moduleStatus === 'completed' ? 'hsl(var(--primary))' : 
+                                       moduleStatus === 'in-progress' ? 'hsl(var(--muted-foreground))' : 'hsl(var(--border))'
+                      }}>
+                  <CardHeader 
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => toggleModuleExpansion(module.id || moduleIndex)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center gap-2">
+                          {moduleStatus === 'completed' ? (
+                            <CheckCircle className="h-5 w-5 text-primary" />
+                          ) : moduleStatus === 'in-progress' ? (
+                            <Clock className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-muted-foreground" />
+                          )}
+                          <Button variant="ghost" size="sm" className="p-0 h-auto">
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
                           </Button>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No materials in this module.</p>
-                    )}
-                  </div>
-
-                  {module.assignment && (
-                    <div className="space-y-2 border-t pt-3 mt-2">
-                      <p className="font-semibold flex items-center gap-2">
-                        <ClipboardList className="h-4 w-4" /> Assignment
-                      </p>
-                      {module.assignment.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {module.assignment.description}
-                        </p>
-                      )}
-                      {module.assignment.instructions && (
-                        <p className="text-xs text-muted-foreground whitespace-pre-line">
-                          {module.assignment.instructions}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Passing score: {module.assignment.passingPercent ?? 70}%
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openAssignmentDialog(module.id, module.assignment.id)}
-                      >
-                        View / submit assignment
-                      </Button>
+                        <div className="flex-1">
+                          <CardTitle className="text-base font-medium">{module.title}</CardTitle>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                            <span>{moduleVideos.length} videos</span>
+                            {moduleMaterials.length > 0 && <span>{moduleMaterials.length} materials</span>}
+                            {hasAssignment && <span>1 assignment</span>}
+                            {hasQuiz && <span>quiz</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <div className="text-sm font-medium">{moduleProgress}%</div>
+                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary transition-all duration-300"
+                              style={{ width: `${moduleProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                        <Badge variant={moduleStatus === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                          Module {moduleIndex + 1}
+                        </Badge>
+                      </div>
                     </div>
+                  </CardHeader>
+
+                  {isExpanded && (
+                    <CardContent className="pt-0 space-y-4">
+                      {moduleVideos.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <Play className="h-4 w-4" />
+                            Videos ({moduleVideos.length})
+                          </div>
+                          <div className="space-y-1">
+                            {moduleVideos.map((video: any, videoIndex: number) => {
+                              const id = `module-${moduleIndex}-video-${videoIndex}`;
+                              const isActive = activeVideo?.id === id;
+                              const isCompleted = completedVideoIds.has(id);
+                              return (
+                                <div
+                                  key={id}
+                                  className={cn(
+                                    "flex items-center justify-between rounded-lg border px-3 py-2 transition-colors",
+                                    isActive ? "bg-primary/10 border-primary/30" : 
+                                    isCompleted ? "bg-muted/50 border-primary/20" : "hover:bg-muted/30"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    {isCompleted ? (
+                                      <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                                    ) : (
+                                      <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <p className={cn(
+                                        "text-sm font-medium truncate",
+                                        isCompleted && "text-muted-foreground"
+                                      )}>
+                                        {video.title}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">Video {videoIndex + 1}</p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant={isActive ? "default" : isCompleted ? "outline" : "ghost"}
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedVideoId(id);
+                                    }}
+                                  >
+                                    {isActive ? 'Watching' : isCompleted ? 'Replay' : 'Watch'}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {moduleMaterials.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <FileText className="h-4 w-4" />
+                            Materials ({moduleMaterials.length})
+                          </div>
+                          <div className="space-y-1">
+                            {moduleMaterials.map((resource: any) => (
+                              <div key={resource.id} className="flex items-center justify-between rounded-lg border px-3 py-2 hover:bg-muted/30">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <Download className="h-4 w-4 text-muted-foreground shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{resource.title}</p>
+                                    <p className="text-xs text-muted-foreground">{resource.fileType || 'File'}</p>
+                                  </div>
+                                </div>
+                                <Button asChild variant="outline" size="sm">
+                                  <a href={resource.url} target="_blank" rel="noreferrer">
+                                    Download
+                                  </a>
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {hasAssignment && (
+                        <div className="space-y-2 border-t pt-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <ClipboardList className="h-4 w-4" />
+                            Assignment
+                          </div>
+                          <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                            {module.assignment.description && (
+                              <p className="text-sm text-muted-foreground">
+                                {module.assignment.description}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-muted-foreground">
+                                Passing: {module.assignment.passingPercent ?? 70}%
+                              </p>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openAssignmentDialog(module.id, module.assignment.id);
+                                }}
+                              >
+                                {assignmentStatus[module.assignment.id] ? 'View Assignment' : 'Start Assignment'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {hasQuiz && (
+                        <div className="pt-2">
+                          <Button 
+                            asChild 
+                            variant="secondary" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Link to={`/courses/${courseId}/modules/${moduleIndex}/quiz`}>
+                              Take Module Quiz
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
                   )}
-
-                  {module.questions?.length ? (
-                    <div className="pt-2 flex gap-2">
-                      <Button asChild variant="secondary" size="sm">
-                        <Link to={`/courses/${courseId}/modules/${moduleIndex}/quiz`}>
-                          Take module quiz
-                        </Link>
-                      </Button>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -761,6 +895,7 @@ const CourseLearn = () => {
                     value={assignmentAnswer}
                     onChange={(e) => setAssignmentAnswer(e.target.value)}
                     placeholder="Write your response here..."
+                    disabled={currentAssignmentStatus && currentAssignmentStatus.status !== 'PENDING'}
                   />
                 </div>
 
@@ -770,6 +905,7 @@ const CourseLearn = () => {
                     type="file"
                     accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif"
                     onChange={handleAssignmentFileUpload}
+                    disabled={currentAssignmentStatus && currentAssignmentStatus.status !== 'PENDING'}
                   />
                   {assignmentFileUrl && (
                     <p className="text-xs text-muted-foreground">
@@ -787,13 +923,23 @@ const CourseLearn = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  type="button"
-                  disabled={assignmentSubmitting}
-                  onClick={() => handleAssignmentSubmit(currentAssignment.id)}
-                >
-                  {assignmentSubmitting ? 'Submitting...' : 'Submit assignment'}
-                </Button>
+                {currentAssignmentStatus && currentAssignmentStatus.status !== 'PENDING' ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setAssignmentDialogModuleId(null)}
+                  >
+                    Close
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    disabled={assignmentSubmitting}
+                    onClick={() => handleAssignmentSubmit(currentAssignment.id)}
+                  >
+                    {assignmentSubmitting ? 'Submitting...' : 'Submit assignment'}
+                  </Button>
+                )}
               </DialogFooter>
             </>
           )}

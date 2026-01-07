@@ -1,0 +1,11 @@
+{
+  "admin": "አስተዳዳሪ",
+  "instructor": "አስተማማኪ",
+  "student": "ተማማኪ",
+  "user": "ተጠቃሚ",
+  "dashboard": "ዳሽቦርድ",
+  "myCourses": "የእኔ ኮርሶች",
+  "myLibrary": "የእኔ መጽሐፍት",
+  "settings": "ቅንብሮች",
+  "logout": "ውጣ"
+}
