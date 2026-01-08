@@ -131,6 +131,42 @@ const CourseLearn = () => {
     fetchEnrollment();
   }, [user, courseId]);
 
+  // Fetch all assignment statuses when course loads
+  useEffect(() => {
+    if (!course || !enrollmentId || !user?.id) return;
+
+    const fetchAllAssignmentStatuses = async () => {
+      const assignmentPromises = course.modules
+        .filter((module: any) => module.assignment)
+        .map((module: any) => 
+          fetch(
+            `${API_BASE_URL}/api/assignments/${module.assignment.id}/my?enrollmentId=${enrollmentId}&userId=${user.id}`
+          )
+        );
+
+      try {
+        const responses = await Promise.all(assignmentPromises);
+        const statuses: Record<number, any> = {};
+        
+        for (let i = 0; i < course.modules.length; i++) {
+          const module = course.modules[i];
+          if (module.assignment && responses[i]) {
+            const response = responses[i];
+            if (response.ok) {
+              statuses[module.assignment.id] = await response.json();
+            }
+          }
+        }
+
+        setAssignmentStatus(statuses);
+      } catch (error) {
+        console.error('Failed to fetch assignment statuses', error);
+      }
+    };
+
+    fetchAllAssignmentStatuses();
+  }, [course, enrollmentId, user]);
+
   const videos = useMemo(
     () =>
       course?.modules?.flatMap((module: any, moduleIndex: number) =>
@@ -177,10 +213,8 @@ const CourseLearn = () => {
   // Get module status
   const getModuleStatus = (module: any, moduleIndex: number) => {
     const progress = getModuleProgress(module, moduleIndex);
-    const hasAssignment = module.assignment;
-    const hasQuiz = module.questions && module.questions.length > 0;
     
-    if (progress === 100 && (!hasAssignment || assignmentStatus[module.assignment.id]?.status === 'APPROVED') && (!hasQuiz)) {
+    if (progress === 100) {
       return 'completed';
     } else if (progress > 0) {
       return 'in-progress';
@@ -193,6 +227,7 @@ const CourseLearn = () => {
   useEffect(() => {
     if (initializedFromEnrollment || !videos.length) return;
 
+    // Only initialize if we have enrollment data
     if (typeof enrollmentProgress === 'number' && enrollmentProgress > 0) {
       const videosToMark = Math.min(
         videos.length,
@@ -207,13 +242,20 @@ const CourseLearn = () => {
         setCompletedVideoIds(newCompletedIds);
         setSelectedVideoId(videos[videosToMark - 1]?.id || videos[0]?.id);
       }
-    } else {
-      // If no progress, start from beginning
+    } else if (enrollmentProgress === 0) {
+      // If progress is explicitly 0, start from beginning
       setSelectedVideoId(videos[0]?.id || null);
+    } else {
+      // If enrollmentProgress is null (still loading), don't reset anything
+      // Just set a default video if none selected
+      if (!selectedVideoId && videos.length > 0) {
+        setSelectedVideoId(videos[0]?.id || null);
+      }
+      return; // Don't mark as initialized yet
     }
 
     setInitializedFromEnrollment(true);
-  }, [videos, enrollmentProgress, initializedFromEnrollment, selectedVideoId]);
+  }, [videos, enrollmentProgress, initializedFromEnrollment]);
 
   const activeVideo =
     videos.find((video) => video.id === selectedVideoId) || videos[0] || null;
@@ -323,10 +365,7 @@ const CourseLearn = () => {
       );
       if (statusResp.ok) {
         const data = await statusResp.json();
-        setAssignmentStatus((prev) => ({
-          ...prev,
-          [assignmentId]: data,
-        }));
+        setAssignmentStatus(prev => ({ ...prev, [assignmentId]: data }));
       }
     } catch (error) {
       console.error('Submit assignment error', error);
@@ -549,38 +588,54 @@ const CourseLearn = () => {
       : null;
 
   const currentAssignment = currentAssignmentModule?.assignment;
-  const currentAssignmentStatus = currentAssignment
-    ? assignmentStatus[currentAssignment.id] || null
-    : null;
+  const currentAssignmentStatus = currentAssignment ? assignmentStatus[currentAssignment.id] : null;
+
+  const getDialogTitle = () => {
+    if (!currentAssignment) return '';
+    
+    if (!currentAssignmentStatus) return currentAssignment.title;
+    
+    switch (currentAssignmentStatus.status) {
+      case 'APPROVED':
+        return `${currentAssignment.title} - Result`;
+      case 'PENDING':
+        return `${currentAssignment.title} - Under Review`;
+      case 'REJECTED':
+        return `${currentAssignment.title} - Result`;
+      default:
+        return currentAssignment.title;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <Breadcrumb />
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => navigate('/my-courses')}>
+      <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 space-y-6 lg:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <Button variant="outline" onClick={() => navigate('/my-courses')} className="w-full sm:w-auto">
             Back to My Courses
           </Button>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             {progressPercent === 100 && enrollmentGrade && (
               <Button 
                 onClick={handleCertificateRequest}
                 disabled={certificateRequested || enrollmentGrade.finalGrade < 70}
                 variant={enrollmentGrade.finalGrade >= 70 ? "default" : "outline"}
+                className="w-full sm:w-auto"
               >
                 {certificateRequested ? 'Generating...' : 
                  enrollmentGrade.finalGrade >= 70 ? 'Request Certificate' : 
                  `Grade: ${enrollmentGrade.finalGrade?.toFixed(1)}% (Need 70%)`}
               </Button>
             )}
-            <p className="text-sm text-muted-foreground">You own this course</p>
+            <p className="text-sm text-muted-foreground text-center sm:text-left">You own this course</p>
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
+        <div className="grid gap-6 lg:gap-8 xl:grid-cols-[2fr,1fr]">
           <Card className="overflow-hidden">
-            <div className="w-full" style={{ minHeight: '500px' }}>
+            <div className="w-full" style={{ minHeight: '400px', maxHeight: '70vh' }}>
               {activeVideo ? (
                 <VideoPlayer
                   videoUrl={activeVideo.videoUrl}
@@ -609,11 +664,11 @@ const CourseLearn = () => {
                 </div>
               )}
             </div>
-            <CardHeader>
-              <CardTitle>{activeVideo?.title || 'No video selected'}</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg sm:text-xl">{activeVideo?.title || 'No video selected'}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 border-t">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <p className="text-sm text-muted-foreground">
                   Progress: {progressPercent}% ({completedVideoIds.size}/{totalVideos || 0} videos)
                 </p>
@@ -622,6 +677,7 @@ const CourseLearn = () => {
                   size="sm"
                   disabled={!activeVideo}
                   onClick={handleMarkComplete}
+                  className="w-full sm:w-auto"
                 >
                   Mark video complete
                 </Button>
@@ -634,13 +690,13 @@ const CourseLearn = () => {
             </CardContent>
           </Card>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
+          <div className="space-y-4 xl:sticky xl:top-4 xl:h-fit">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
                 Course Content
               </h2>
-              <Badge variant="outline" className="text-sm">
+              <Badge variant="outline" className="text-sm shrink-0">
                 {progressPercent}% Complete
               </Badge>
             </div>
@@ -661,12 +717,12 @@ const CourseLearn = () => {
                                        moduleStatus === 'in-progress' ? 'hsl(var(--muted-foreground))' : 'hsl(var(--border))'
                       }}>
                   <CardHeader 
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors pb-3"
                     onClick={() => toggleModuleExpansion(module.id || moduleIndex)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           {moduleStatus === 'completed' ? (
                             <CheckCircle className="h-5 w-5 text-primary" />
                           ) : moduleStatus === 'in-progress' ? (
@@ -674,38 +730,34 @@ const CourseLearn = () => {
                           ) : (
                             <Circle className="h-5 w-5 text-muted-foreground" />
                           )}
-                          <Button variant="ghost" size="sm" className="p-0 h-auto">
-                            {isExpanded ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-base sm:text-lg truncate">{module.title}</h3>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {moduleProgress}% complete
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {moduleVideos.length} videos
+                            </span>
+                            {hasAssignment && (
+                              <Badge variant="secondary" className="text-xs">
+                                Assignment
+                              </Badge>
                             )}
-                          </Button>
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-base font-medium">{module.title}</CardTitle>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                            <span>{moduleVideos.length} videos</span>
-                            {moduleMaterials.length > 0 && <span>{moduleMaterials.length} materials</span>}
-                            {hasAssignment && <span>1 assignment</span>}
-                            {hasQuiz && <span>quiz</span>}
+                            {hasQuiz && (
+                              <Badge variant="secondary" className="text-xs">
+                                Quiz
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
-                          <div className="text-sm font-medium">{moduleProgress}%</div>
-                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary transition-all duration-300"
-                              style={{ width: `${moduleProgress}%` }}
-                            />
-                          </div>
-                        </div>
-                        <Badge variant={moduleStatus === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                          Module {moduleIndex + 1}
-                        </Badge>
-                      </div>
+                      <ChevronDown 
+                        className={`h-5 w-5 text-muted-foreground transition-transform duration-200 shrink-0 ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`} 
+                      />
                     </div>
                   </CardHeader>
 
@@ -815,7 +867,13 @@ const CourseLearn = () => {
                                   openAssignmentDialog(module.id, module.assignment.id);
                                 }}
                               >
-                                {assignmentStatus[module.assignment.id] ? 'View Assignment' : 'Start Assignment'}
+                                {assignmentStatus[module.assignment.id] ? (
+                                  assignmentStatus[module.assignment.id].status === 'APPROVED' ? 
+                                    'View Result' : 
+                                    assignmentStatus[module.assignment.id].status === 'PENDING' ? 
+                                      'Under Review' : 
+                                      'View Assignment'
+                                ) : 'Start Assignment'}
                               </Button>
                             </div>
                           </div>
@@ -856,7 +914,7 @@ const CourseLearn = () => {
           {currentAssignment && (
             <>
               <DialogHeader>
-                <DialogTitle>{currentAssignment.title}</DialogTitle>
+                <DialogTitle>{getDialogTitle()}</DialogTitle>
                 {currentAssignment.description && (
                   <DialogDescription>{currentAssignment.description}</DialogDescription>
                 )}

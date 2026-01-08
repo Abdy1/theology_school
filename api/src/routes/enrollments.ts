@@ -81,6 +81,60 @@ router.patch('/:enrollmentId/progress', async (req, res) => {
   }
 });
 
+// Get enrollments by course (for instructors to see their students)
+router.get('/course/:courseId', async (req, res) => {
+  const courseId = Number(req.params.courseId);
+  
+  if (!courseId) {
+    return res.status(400).json({ message: 'courseId is required' });
+  }
+
+  try {
+    const result = await pool.query(`
+      SELECT 
+        e.*,
+        u.name as "userName",
+        u.email as "userEmail",
+        c.title as "courseTitle"
+      FROM "Enrollment" e
+      JOIN "User" u ON e."userId" = u.id
+      JOIN "Course" c ON e."courseId" = c.id
+      WHERE e."courseId" = $1
+      ORDER BY e."createdAt" DESC
+    `, [courseId]);
+    
+    const enrollments = result.rows;
+    res.json(enrollments);
+  } catch (error) {
+    console.error('Get enrollments by course error', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get all enrollments (for instructors to see all their students)
+router.get('/all', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        e.*,
+        u.name as "userName",
+        u.email as "userEmail",
+        c.title as "courseTitle",
+        c."instructorId"
+      FROM "Enrollment" e
+      JOIN "User" u ON e."userId" = u.id
+      JOIN "Course" c ON e."courseId" = c.id
+      ORDER BY e."createdAt" DESC
+    `);
+    
+    const enrollments = result.rows;
+    res.json(enrollments);
+  } catch (error) {
+    console.error('Get all enrollments error', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Assignment submission routes
 router.get('/submissions', async (req, res) => {
   try {

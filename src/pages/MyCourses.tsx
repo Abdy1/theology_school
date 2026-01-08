@@ -3,10 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
 import { Breadcrumb } from '@/components/Breadcrumb';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Play, Clock, Users, BookOpen, CheckCircle } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8081';
+
+// Utility function to truncate text
+const truncateText = (text: string, maxLength: number = 200) => {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + '...';
+};
 
 const MyCourses = () => {
   const { user, isLoading } = useAuth();
@@ -64,7 +71,15 @@ const MyCourses = () => {
             {myCourses.map((course: any) => (
               <Card key={course.enrollmentId} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle>{course.title}</CardTitle>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-xl line-clamp-2">{course.title}</CardTitle>
+                    <Badge variant={course.progressPercent === 100 ? "default" : "outline"} className="shrink-0">
+                      {course.level}
+                    </Badge>
+                  </div>
+                  <CardDescription className="line-clamp-4 text-sm">
+                    {course.description ? truncateText(course.description, 200) : 'No description available'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-muted-foreground">
                   <div className="flex items-center justify-between">
@@ -73,11 +88,36 @@ const MyCourses = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Progress</span>
-                    <span>{course.progressPercent}%</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${course.progressPercent}%` }}
+                        />
+                      </div>
+                      <span className="font-medium">{course.progressPercent}%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Duration</span>
+                    <span>{course.durationMinutes || 0} min</span>
                   </div>
                   <div className="pt-2 flex justify-end">
-                    <Link to={`/courses/${course.courseId}/learn`} className="text-primary hover:underline text-sm">
-                      Continue learning
+                    <Link 
+                      to={`/courses/${course.courseId}/learn`} 
+                      className="flex items-center text-primary hover:underline text-sm font-medium"
+                    >
+                      {course.progressPercent === 100 ? (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Review Course
+                        </>
+                      ) : (
+                        <>
+                          <Play className="mr-2 h-4 w-4" />
+                          Continue Learning
+                        </>
+                      )}
                     </Link>
                   </div>
                 </CardContent>

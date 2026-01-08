@@ -274,7 +274,7 @@ const MyLibrary = () => {
                             <span>Access granted: {new Date(book.access_granted_at).toLocaleDateString()}</span>
                           </div>
                           {book.purchase_price > 0 && (
-                            <div>Purchase price: ${book.purchase_price}</div>
+                            <div>Purchase price: Br {book.purchase_price}</div>
                           )}
                         </div>
                         

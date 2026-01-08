@@ -132,10 +132,8 @@ const CourseQuiz = () => {
         variant: result.passed ? 'default' : 'destructive',
       });
 
-      // Navigate back after a delay
-      setTimeout(() => {
-        navigate(`/courses/${courseId}/learn`);
-      }, 2000);
+      // Navigate back after a delay - only if user wants to leave
+      // Don't auto-redirect, let user review their results
       
     } catch (error) {
       console.error('Submit quiz error', error);
@@ -205,6 +203,30 @@ const CourseQuiz = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Results Summary - Show after submission */}
+            {submitted && (
+              <div className="rounded-lg border p-6 bg-muted/50">
+                <div className="text-center space-y-4">
+                  <div className="flex justify-center">
+                    <Badge variant={passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+                      {passed ? '✓ Quiz Passed' : '✗ Quiz Failed'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">{score}%</h3>
+                    <p className="text-muted-foreground">
+                      You got {questions.reduce((acc, q) => acc + (answers[q.id] === q.correctIndex ? 1 : 0), 0)} out of {questions.length} questions correct
+                    </p>
+                  </div>
+                  {!passed && (
+                    <div className="text-sm text-muted-foreground bg-destructive/10 p-3 rounded-md">
+                      You need at least {PASSING_PERCENT}% to pass. Review the material and try again.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {questions.length === 0 && (
               <p className="text-muted-foreground">No questions for this module.</p>
             )}
@@ -244,20 +266,40 @@ const CourseQuiz = () => {
             ))}
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={handleSubmit} disabled={questions.length === 0 || totalAnswered < questions.length}>
-                Submit quiz
-              </Button>
-              <Button variant="outline" onClick={() => navigate(`/courses/${courseId}/learn`)}>
-                Back to learning
-              </Button>
-              {moduleIdx < (course.modules?.length || 0) - 1 && (
-                <Button
-                  variant="secondary"
-                  disabled={!passed}
-                  onClick={() => navigate(`/courses/${courseId}/modules/${moduleIdx + 1}/quiz`)}
-                >
-                  Next module quiz
-                </Button>
+              {!submitted ? (
+                <>
+                  <Button onClick={handleSubmit} disabled={questions.length === 0 || totalAnswered < questions.length}>
+                    Submit quiz
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate(`/courses/${courseId}/learn`)}>
+                    Back to learning
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={() => navigate(`/courses/${courseId}/learn`)}>
+                    Back to learning
+                  </Button>
+                  {passed && moduleIdx < (course.modules?.length || 0) - 1 && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => navigate(`/courses/${courseId}/modules/${moduleIdx + 1}/quiz`)}
+                    >
+                      Next module quiz
+                    </Button>
+                  )}
+                  {!passed && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setAnswers({});
+                        setSubmitted(false);
+                      }}
+                    >
+                      Retake quiz
+                    </Button>
+                  )}
+                </>
               )}
             </div>
             {submitted && !passed && (

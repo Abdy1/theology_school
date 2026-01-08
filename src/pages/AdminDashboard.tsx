@@ -449,7 +449,7 @@ const AdminDashboard = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="buy-price">Buy Price ($)</Label>
+                    <Label htmlFor="buy-price">Buy Price (Br)</Label>
                     <Input
                       id="buy-price"
                       type="number"
@@ -459,7 +459,7 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="rent-24h">Rent 24h ($)</Label>
+                    <Label htmlFor="rent-24h">Rent 24h (Br)</Label>
                     <Input
                       id="rent-24h"
                       type="number"
@@ -469,7 +469,7 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="rent-7d">Rent 7 days ($)</Label>
+                    <Label htmlFor="rent-7d">Rent 7 days (Br)</Label>
                     <Input
                       id="rent-7d"
                       type="number"
@@ -493,7 +493,7 @@ const AdminDashboard = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="shipping-price">Shipping Price ($)</Label>
+                      <Label htmlFor="shipping-price">Shipping Price (Br)</Label>
                       <Input
                         id="shipping-price"
                         type="number"
@@ -665,12 +665,12 @@ const AdminDashboard = () => {
                       <div className="flex justify-between items-center text-sm">
                         <div>
                           {book.buy_price && (
-                            <span className="font-semibold">Buy: ${book.buy_price}</span>
+                            <span className="font-semibold">Buy: Br {book.buy_price}</span>
                           )}
                           {(book.rent_24h_price || book.rent_7d_price) && (
                             <div className="text-xs text-muted-foreground">
-                              {book.rent_24h_price && <span>Rent 24h: ${book.rent_24h_price}</span>}
-                              {book.rent_7d_price && <span> • 7d: ${book.rent_7d_price}</span>}
+                              {book.rent_24h_price && <span>Rent 24h: Br {book.rent_24h_price}</span>}
+                              {book.rent_7d_price && <span> • 7d: Br {book.rent_7d_price}</span>}
                             </div>
                           )}
                         </div>

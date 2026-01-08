@@ -18,6 +18,7 @@ const CourseDetail = () => {
   const [course, setCourse] = useState(null);
   const [courseLoading, setCourseLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,6 +46,28 @@ const CourseDetail = () => {
 
     if (user) {
       fetchCourse();
+    }
+  }, [user, courseId]);
+
+  // Check if user is already enrolled
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      if (!courseId || !user?.id) return;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/enrollments/my?userId=${user.id}`);
+        if (response.ok) {
+          const enrollments = await response.json();
+          const enrolled = enrollments.some((enrollment: any) => enrollment.courseId === Number(courseId));
+          setIsEnrolled(enrolled);
+        }
+      } catch (error) {
+        console.error('Failed to check enrollment:', error);
+      }
+    };
+
+    if (user && courseId) {
+      checkEnrollment();
     }
   }, [user, courseId]);
 
@@ -171,55 +194,67 @@ const CourseDetail = () => {
                     <p className="text-sm text-muted-foreground">Course price</p>
                     <p className="text-2xl font-bold text-primary">${course.price}</p>
                   </div>
-                  <Button
-                    size="lg"
-                    disabled={enrolling}
-                    onClick={async () => {
-                      if (!courseId || !user?.id) {
-                        toast({
-                          title: 'Unable to enroll',
-                          description: 'User or course missing. Please log in again.',
-                          variant: 'destructive',
-                        });
-                        return;
-                      }
-
-                      setEnrolling(true);
-                      try {
-                        const response = await fetch(`${API_BASE_URL}/api/enrollments`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            userId: Number(user.id),
-                            courseId: Number(courseId),
-                          }),
-                        });
-
-                        if (!response.ok) {
-                          throw new Error('Enrollment request failed');
+                  {isEnrolled ? (
+                    <div className="text-right">
+                      <Button
+                        size="lg"
+                        onClick={() => navigate(`/courses/${courseId}/learn`)}
+                      >
+                        Continue Learning
+                      </Button>
+                      <p className="text-sm text-green-600 mt-2">You're enrolled in this course</p>
+                    </div>
+                  ) : (
+                    <Button
+                      size="lg"
+                      disabled={enrolling}
+                      onClick={async () => {
+                        if (!courseId || !user?.id) {
+                          toast({
+                            title: 'Unable to enroll',
+                            description: 'User or course missing. Please log in again.',
+                            variant: 'destructive',
+                          });
+                          return;
                         }
 
-                        toast({
-                          title: 'Enrolled successfully',
-                          description: 'Opening your course now.',
-                        });
-                        navigate(`/courses/${courseId}/learn`);
-                      } catch (error) {
-                        console.error('Enrollment failed', error);
-                        toast({
-                          title: 'Could not enroll',
-                          description: 'Please try again or contact support.',
-                          variant: 'destructive',
-                        });
-                      } finally {
-                        setEnrolling(false);
-                      }
-                    }}
-                  >
-                    {enrolling ? 'Processing...' : 'Buy course'}
-                  </Button>
+                        setEnrolling(true);
+                        try {
+                          const response = await fetch(`${API_BASE_URL}/api/enrollments`, {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              userId: Number(user.id),
+                              courseId: Number(courseId),
+                            }),
+                          });
+
+                          if (!response.ok) {
+                            throw new Error('Enrollment request failed');
+                          }
+
+                          toast({
+                            title: 'Enrolled successfully',
+                            description: 'Opening your course now.',
+                          });
+                          navigate(`/courses/${courseId}/learn`);
+                        } catch (error) {
+                          console.error('Enrollment failed', error);
+                          toast({
+                            title: 'Could not enroll',
+                            description: 'Please try again or contact support.',
+                            variant: 'destructive',
+                          });
+                        } finally {
+                          setEnrolling(false);
+                        }
+                      }}
+                    >
+                      {enrolling ? 'Processing...' : 'Buy course'}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

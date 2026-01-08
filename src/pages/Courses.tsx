@@ -5,12 +5,12 @@ import { Navigation } from '@/components/Navigation';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Play } from 'lucide-react';
+import { Play, Clock, Users, BookOpen } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8081';
 
 // Utility function to truncate text
-const truncateText = (text: string, maxLength: number = 120) => {
+const truncateText = (text: string, maxLength: number = 300) => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trim() + '...';
 };
@@ -21,6 +21,7 @@ const Courses = () => {
   const [search, setSearch] = useState('');
   const [courses, setCourses] = useState([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -50,15 +51,34 @@ const Courses = () => {
     }
   }, [user]);
 
+  // Fetch enrolled courses to exclude them
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/enrollments/my?userId=${user?.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setEnrolledCourses(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch enrolled courses:', error);
+      }
+    };
+
+    if (user) {
+      fetchEnrolledCourses();
+    }
+  }, [user]);
+
   const filteredCourses = useMemo(
     () =>
       courses.filter((course: any) => {
         const q = search.toLowerCase();
-        return (
-          course.title.toLowerCase().includes(q) || course.description.toLowerCase().includes(q)
-        );
+        const isEnrolled = enrolledCourses.some((enrollment: any) => enrollment.courseId === course.id);
+        const matchesSearch = course.title.toLowerCase().includes(q) || course.description.toLowerCase().includes(q);
+        return matchesSearch && !isEnrolled;
       }),
-    [search, courses],
+    [search, courses, enrolledCourses],
   );
 
   if (isLoading || coursesLoading) {
@@ -102,12 +122,21 @@ const Courses = () => {
                   <CardTitle className="text-xl line-clamp-2">{course.title}</CardTitle>
                   <Badge variant="secondary" className="shrink-0">{course.durationMinutes} min</Badge>
                 </div>
-                <CardDescription className="line-clamp-3">
-                  {truncateText(course.description, 150)}
+                <CardDescription className="line-clamp-6">
+                  {truncateText(course.description, 300)}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex items-center justify-between mt-auto">
-                <p className="text-sm text-muted-foreground">{course.level}</p>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>{course.enrolledCount || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{course.modules?.length || 0}</span>
+                  </div>
+                </div>
                 <Link
                   to={`/courses/${course.id}`}
                   className="flex items-center text-primary hover:underline font-medium"

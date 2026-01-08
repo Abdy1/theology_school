@@ -5,7 +5,7 @@ import { Breadcrumb } from '@/components/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Package, DollarSign, Clock, User, ArrowLeft, Star, Calendar, FileText } from 'lucide-react';
+import { BookOpen, Package, Coins, Clock, User, ArrowLeft, Star, Calendar, FileText } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8081';
 
@@ -315,11 +315,11 @@ const BookDetail = () => {
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-green-600" />
+                            <Coins className="h-5 w-5 text-green-600" />
                             <span className="font-medium">Permanent Access</span>
                           </div>
                           <span className="text-2xl font-bold text-green-600">
-                            ${book.buy_price}
+                            Br {book.buy_price}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-3">
@@ -329,7 +329,7 @@ const BookDetail = () => {
                           className="w-full"
                           onClick={() => handleMockPurchase('buy')}
                         >
-                          Buy Now - ${book.buy_price}
+                          Buy Now - Br {book.buy_price}
                         </Button>
                       </div>
                     )}
@@ -347,7 +347,7 @@ const BookDetail = () => {
                                 <span className="font-medium">24 Hours</span>
                               </div>
                               <span className="text-xl font-bold text-blue-600">
-                                ${book.rent_24h_price}
+                                Br {book.rent_24h_price}
                               </span>
                             </div>
                             <Button 
@@ -355,7 +355,7 @@ const BookDetail = () => {
                               className="w-full"
                               onClick={() => handleMockPurchase('rent', 24)}
                             >
-                              Rent for 24h - ${book.rent_24h_price}
+                              Rent for 24h - Br {book.rent_24h_price}
                             </Button>
                           </div>
                         )}
@@ -368,7 +368,7 @@ const BookDetail = () => {
                                 <span className="font-medium">7 Days</span>
                               </div>
                               <span className="text-xl font-bold text-blue-600">
-                                ${book.rent_7d_price}
+                                Br {book.rent_7d_price}
                               </span>
                             </div>
                             <Button 
@@ -376,7 +376,7 @@ const BookDetail = () => {
                               className="w-full"
                               onClick={() => handleMockPurchase('rent', 168)}
                             >
-                              Rent for 7 days - ${book.rent_7d_price}
+                              Rent for 7 days - Br {book.rent_7d_price}
                             </Button>
                           </div>
                         )}
@@ -401,7 +401,7 @@ const BookDetail = () => {
                         )}
                         {book.shipping_price && book.shipping_price > 0 && (
                           <p className="text-sm text-muted-foreground">
-                            Shipping: ${book.shipping_price}
+                            Shipping: Br {book.shipping_price}
                           </p>
                         )}
                         <Button 
