@@ -134,7 +134,7 @@ router.post('/', async (req, res) => {
       // Insert assignment if exists
       if (moduleData.assignment) {
         await client.query(
-          'INSERT INTO "Assignment" ("moduleId", title, description, instructions, "passingPercent", points) VALUES ($1, $2, $3, $4, $5, $6)',
+          'INSERT INTO "ModuleAssignment" ("moduleId", title, description, instructions, "passingPercent", points) VALUES ($1, $2, $3, $4, $5, $6)',
           [module.id, moduleData.assignment.title, moduleData.assignment.description, moduleData.assignment.instructions, moduleData.assignment.passingPercent, moduleData.assignment.points ?? 10]
         );
       }
