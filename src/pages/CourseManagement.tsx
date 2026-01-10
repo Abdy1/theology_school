@@ -64,6 +64,16 @@ const CourseManagement = () => {
     price: 0
   });
 
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Get current user from localStorage
+    const userData = localStorage.getItem('theology-user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
   useEffect(() => {
     // Try to get course data from sessionStorage first (from dashboard)
     const storedCourse = sessionStorage.getItem('selectedCourse');
@@ -104,13 +114,17 @@ const CourseManagement = () => {
   };
 
   const handleSaveCourse = async () => {
-    if (!course) return;
+    if (!course || !user) return;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/courses/${course.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editFormData)
+        body: JSON.stringify({
+          ...editFormData,
+          modules: course.modules || [],
+          instructorId: user.id
+        })
       });
 
       if (response.ok) {
@@ -118,6 +132,9 @@ const CourseManagement = () => {
         setCourse(updatedCourse);
         setEditMode(false);
         alert('Course updated successfully!');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update course');
       }
     } catch (error) {
       console.error('Failed to update course:', error);
@@ -126,15 +143,20 @@ const CourseManagement = () => {
   };
 
   const handleDeleteCourse = async () => {
-    if (!course) return;
+    if (!course || !user) return;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/courses/${course.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructorId: user.id })
       });
 
       if (response.ok) {
         navigate('/instructor');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete course');
       }
     } catch (error) {
       console.error('Failed to delete course:', error);
@@ -169,26 +191,11 @@ const CourseManagement = () => {
           </div>
           <div className="flex gap-2">
             <Button
-              variant={editMode ? "default" : "outline"}
-              onClick={() => {
-                if (editMode) {
-                  handleSaveCourse();
-                } else {
-                  setEditMode(true);
-                }
-              }}
+              variant="outline"
+              onClick={() => navigate(`/edit-course/${course.id}`)}
             >
-              {editMode ? (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </>
-              ) : (
-                <>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Course
-                </>
-              )}
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Details
             </Button>
             <Button
               variant="destructive"

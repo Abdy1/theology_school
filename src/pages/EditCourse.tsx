@@ -74,6 +74,23 @@ const EditCourse = () => {
         }
         const data = await resp.json();
         setCourse(data);
+        
+        // Transform modules data to match frontend structure
+        const transformedModules = (data.modules || []).map((module: any) => ({
+          title: module.title,
+          orderIndex: module.orderIndex || 0,
+          videoUrls: module.videos ? module.videos.map((v: any) => v.url) : [],
+          materials: module.materials || [],
+          questions: module.questions || [],
+          assignment: module.assignment || {
+            title: '',
+            description: '',
+            instructions: '',
+            passingPercent: 70,
+            points: 10
+          }
+        }));
+        
         setFormData({
           title: data.title,
           description: data.description,
@@ -81,7 +98,7 @@ const EditCourse = () => {
           level: data.level,
           price: data.price,
           status: data.status,
-          modules: data.modules || []
+          modules: transformedModules
         });
       } catch (error) {
         console.error('Failed to fetch course', error);

@@ -240,4 +240,191 @@ router.get('/:courseId', async (req, res) => {
   }
 });
 
+// Delete a course
+router.delete('/:courseId', async (req, res) => {
+  const courseId = Number(req.params.courseId);
+  const { instructorId } = req.body || {};
+
+  if (!courseId || !instructorId) {
+    return res.status(400).json({ message: 'courseId and instructorId are required' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check if course exists and belongs to instructor
+    const courseResult = await client.query(
+      'SELECT * FROM "Course" WHERE id = $1 AND "instructorId" = $2',
+      [courseId, instructorId]
+    );
+
+    if (courseResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Course not found or you do not have permission to delete it' });
+    }
+
+    // Delete in proper order to handle foreign key constraints
+    
+    // First, get all modules for this course
+    const modulesResult = await client.query(
+      'SELECT id FROM "CourseModule" WHERE "courseId" = $1',
+      [courseId]
+    );
+
+    // Delete related data for each module
+    for (const module of modulesResult.rows) {
+      // Delete quiz attempts first
+      await client.query('DELETE FROM "QuizAttempt" WHERE "moduleId" = $1', [module.id]);
+      
+      // Delete quiz questions
+      await client.query('DELETE FROM "QuizQuestion" WHERE "moduleId" = $1', [module.id]);
+      
+      // Delete assignment submissions
+      await client.query(
+        'DELETE FROM "AssignmentSubmission" WHERE "assignmentId" IN (SELECT id FROM "ModuleAssignment" WHERE "moduleId" = $1)',
+        [module.id]
+      );
+      
+      // Delete assignments
+      await client.query('DELETE FROM "ModuleAssignment" WHERE "moduleId" = $1', [module.id]);
+      
+      // Delete module materials
+      await client.query('DELETE FROM "ModuleMaterial" WHERE "moduleId" = $1', [module.id]);
+      
+      // Delete module videos
+      await client.query('DELETE FROM "ModuleVideo" WHERE "moduleId" = $1', [module.id]);
+    }
+
+    // Delete modules themselves
+    await client.query('DELETE FROM "CourseModule" WHERE "courseId" = $1', [courseId]);
+
+    // Delete enrollments for this course
+    await client.query('DELETE FROM "Enrollment" WHERE "courseId" = $1', [courseId]);
+
+    // Finally delete the course
+    await client.query('DELETE FROM "Course" WHERE id = $1', [courseId]);
+
+    await client.query('COMMIT');
+    
+    res.json({ message: 'Course deleted successfully' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Delete course error', err);
+    res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+});
+
+// Update a course
+router.put('/:courseId', async (req, res) => {
+  const courseId = Number(req.params.courseId);
+  const { title, description, durationMinutes, level, price, status, modules, instructorId } = req.body || {};
+
+  if (!courseId || !title || !description || !durationMinutes || !level || !modules || !instructorId) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check if course exists and belongs to instructor
+    const courseResult = await client.query(
+      'SELECT * FROM "Course" WHERE id = $1 AND "instructorId" = $2',
+      [courseId, instructorId]
+    );
+
+    if (courseResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Course not found or you do not have permission to edit it' });
+    }
+
+    // Update course basic info
+    await client.query(
+      'UPDATE "Course" SET title = $1, description = $2, "durationMinutes" = $3, level = $4, price = $5, status = $6 WHERE id = $7',
+      [title, description, durationMinutes, level, price, status || 'PENDING', courseId]
+    );
+
+    // Delete existing modules and their content
+    const existingModulesResult = await client.query(
+      'SELECT id FROM "CourseModule" WHERE "courseId" = $1',
+      [courseId]
+    );
+
+    for (const module of existingModulesResult.rows) {
+      // Delete related data (videos, materials, questions, assignments)
+      await client.query('DELETE FROM "ModuleVideo" WHERE "moduleId" = $1', [module.id]);
+      await client.query('DELETE FROM "ModuleMaterial" WHERE "moduleId" = $1', [module.id]);
+      await client.query('DELETE FROM "QuizQuestion" WHERE "moduleId" = $1', [module.id]);
+      await client.query('DELETE FROM "ModuleAssignment" WHERE "moduleId" = $1', [module.id]);
+    }
+
+    // Delete modules themselves
+    await client.query('DELETE FROM "CourseModule" WHERE "courseId" = $1', [courseId]);
+
+    // Insert updated modules and their content
+    for (const moduleData of modules) {
+      const moduleResult = await client.query(
+        'INSERT INTO "CourseModule" (title, "courseId", "orderIndex") VALUES ($1, $2, $3) RETURNING *',
+        [moduleData.title, courseId, moduleData.orderIndex]
+      );
+      const module = moduleResult.rows[0];
+
+      // Insert videos
+      const videos = moduleData.videoUrls || [];
+      for (let i = 0; i < videos.length; i++) {
+        const videoUrl = videos[i];
+        if (videoUrl) {
+          await client.query(
+            'INSERT INTO "ModuleVideo" ("moduleId", "videoUrl", "videoType", "videoTitle", "orderIndex") VALUES ($1, $2, $3, $4, $5)',
+            [module.id, videoUrl, 'youtube', 'Video ' + (i + 1), i]
+          );
+        }
+      }
+
+      // Insert materials
+      for (const material of moduleData.materials || []) {
+        await client.query(
+          'INSERT INTO "ModuleMaterial" ("moduleId", title, url, "fileType") VALUES ($1, $2, $3, $4)',
+          [module.id, material.title, material.url, material.fileType]
+        );
+      }
+
+      // Insert quiz questions
+      for (const question of moduleData.questions || []) {
+        await client.query(
+          'INSERT INTO "QuizQuestion" ("moduleId", "questionText", options, "correctIndex", points) VALUES ($1, $2, $3, $4, $5)',
+          [module.id, question.questionText, question.options, question.correctIndex, question.points ?? 10]
+        );
+      }
+
+      // Insert assignment if exists
+      if (moduleData.assignment) {
+        await client.query(
+          'INSERT INTO "ModuleAssignment" ("moduleId", title, description, instructions, "passingPercent", points) VALUES ($1, $2, $3, $4, $5, $6)',
+          [module.id, moduleData.assignment.title, moduleData.assignment.description, moduleData.assignment.instructions, moduleData.assignment.passingPercent, moduleData.assignment.points ?? 10]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    // Fetch the updated course
+    const responseCourse = await pool.query(
+      'SELECT * FROM "Course" WHERE id = $1',
+      [courseId]
+    );
+
+    res.json(responseCourse.rows[0]);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Update course error', err);
+    res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
