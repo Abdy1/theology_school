@@ -17,6 +17,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<any>(null);
   const [pendingCourses, setPendingCourses] = useState<any[]>([]);
+  const [enrolledUsers, setEnrolledUsers] = useState<any[]>([]);
+  const [nonEnrolledUsers, setNonEnrolledUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddTeacher, setShowAddTeacher] = useState(false);
   const [teacherForm, setTeacherForm] = useState({
@@ -29,16 +31,22 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summaryResponse, pendingResponse] = await Promise.all([
+        const [summaryResponse, pendingResponse, enrolledResponse, nonEnrolledResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/api/admin/summary`),
-          fetch(`${API_BASE_URL}/api/admin/courses/pending`)
+          fetch(`${API_BASE_URL}/api/admin/courses/pending`),
+          fetch(`${API_BASE_URL}/api/admin/users/enrolled`),
+          fetch(`${API_BASE_URL}/api/admin/users/non-enrolled`)
         ]);
 
         const summaryData = await summaryResponse.json();
         const pendingData = await pendingResponse.json();
+        const enrolledData = await enrolledResponse.json();
+        const nonEnrolledData = await nonEnrolledResponse.json();
 
         setSummary(summaryData);
         setPendingCourses(pendingData);
+        setEnrolledUsers(enrolledData);
+        setNonEnrolledUsers(nonEnrolledData);
       } catch (error) {
         console.error('Failed to fetch admin data:', error);
       } finally {
@@ -313,6 +321,107 @@ const AdminDashboard = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* User Management */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-primary mb-4">User Management</h2>
+          
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Enrolled Users */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Enrolled Users</CardTitle>
+                  <Badge variant="default">{enrolledUsers.length}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Users who are enrolled in at least one course
+                </p>
+              </CardHeader>
+              <CardContent>
+                {enrolledUsers.length === 0 ? (
+                  <div className="text-center py-4">
+                    <Users className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No enrolled users found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {enrolledUsers.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">
+                              {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{user.name || 'Unknown'}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline" className="text-xs">
+                            {user.enrollment_count || 0} courses
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {user.role || 'student'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Non-Enrolled Users */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Non-Enrolled Users</CardTitle>
+                  <Badge variant="secondary">{nonEnrolledUsers.length}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Users who have accounts but are not enrolled in any courses
+                </p>
+              </CardHeader>
+              <CardContent>
+                {nonEnrolledUsers.length === 0 ? (
+                  <div className="text-center py-4">
+                    <Users className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">All users are enrolled!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {nonEnrolledUsers.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-secondary">
+                              {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{user.name || 'Unknown'}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline" className="text-xs">
+                            Not enrolled
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {user.role || 'student'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

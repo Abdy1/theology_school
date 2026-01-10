@@ -172,4 +172,51 @@ router.patch('/courses/:courseId/reject', async (req, res) => {
   }
 });
 
+// Get enrolled users (users with at least one enrollment)
+router.get('/users/enrolled', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.role,
+        u."phoneNumber",
+        COUNT(e.id) as enrollment_count
+      FROM "User" u
+      INNER JOIN "Enrollment" e ON u.id = e."userId"
+      GROUP BY u.id, u.name, u.email, u.role, u."phoneNumber"
+      ORDER BY u.id DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get enrolled users error', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get non-enrolled users (users with no enrollments)
+router.get('/users/non-enrolled', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.role,
+        u."phoneNumber"
+      FROM "User" u
+      LEFT JOIN "Enrollment" e ON u.id = e."userId"
+      WHERE e.id IS NULL AND u.role IN ('student')
+      ORDER BY u.id DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get non-enrolled users error', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 export default router;
