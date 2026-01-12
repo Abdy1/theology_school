@@ -27,14 +27,19 @@ export const Navigation = () => {
           <div className="flex items-center space-x-6">
             {user ? (
               <>
-                <Link to="/library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
-                  <Library className="h-4 w-4" />
-                  {t('navigation:library')}
-                </Link>
-                <Link to="/my-library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  {t('navigation:myBooks')}
-                </Link>
+                {/* Hide library and my books for admin users */}
+                {user.role !== 'admin' && (
+                  <>
+                    <Link to="/library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
+                      <Library className="h-4 w-4" />
+                      {t('navigation:library')}
+                    </Link>
+                    <Link to="/my-library" className="text-foreground hover:text-primary transition-colors flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      {t('navigation:myBooks')}
+                    </Link>
+                  </>
+                )}
                 {isLandingPage && (
                   <>
                     <Link to="/courses" className="text-foreground hover:text-primary transition-colors">

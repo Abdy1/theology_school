@@ -242,10 +242,12 @@ const InstructorDashboard = () => {
       });
       
       if (!resp.ok) {
-        throw new Error('Failed to delete course');
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete course');
       }
 
       setCourses(courses.filter(course => course.id !== courseId));
+      setCoursesWithStudents(coursesWithStudents.filter(cws => cws.course.id !== courseId));
     } catch (error) {
       console.error('Failed to delete course', error);
       alert('Failed to delete course. Please try again.');

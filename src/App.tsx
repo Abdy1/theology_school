@@ -28,6 +28,7 @@ import Library from "./pages/Library";
 import BookDetail from "./pages/BookDetail";
 import MyLibrary from "./pages/MyLibrary";
 import BookReader from "./pages/BookReader";
+import LibraryManagement from "./pages/LibraryManagement";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,12 @@ const App = () => (
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/library-management" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <LibraryManagement />
               </ProtectedRoute>
             } />
             

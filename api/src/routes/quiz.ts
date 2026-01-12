@@ -19,6 +19,16 @@ router.post('/:quizId/attempt', async (req, res) => {
   }
 
   try {
+    // Check if user already attempted this quiz
+    const existingAttempt = await pool.query(
+      'SELECT COUNT(*) as attempt_count FROM "QuizAttempt" WHERE "moduleId" = $1 AND "userId" = $2',
+      [moduleId, userId]
+    );
+
+    if (parseInt(existingAttempt.rows[0].attempt_count) > 0) {
+      return res.status(400).json({ message: 'You have already attempted this quiz. No retakes are allowed.' });
+    }
+
     // Get all quiz questions for this module
     const quizResult = await pool.query(
       'SELECT * FROM "QuizQuestion" WHERE "moduleId" = $1',
@@ -164,6 +174,30 @@ async function recalculateQuizEnrollmentGrade(enrollmentId: number) {
     console.error('Recalculate quiz enrollment grade error', error);
   }
 }
+
+// Check if user already attempted quiz for this module
+router.get('/:moduleId/attempt/:userId', async (req, res) => {
+  const moduleId = Number(req.params.moduleId);
+  const userId = Number(req.params.userId);
+
+  if (!moduleId || !userId) {
+    return res.status(400).json({ message: 'moduleId and userId are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT COUNT(*) as attempt_count FROM "QuizAttempt" WHERE "moduleId" = $1 AND "userId" = $2',
+      [moduleId, userId]
+    );
+
+    const hasAttempted = parseInt(result.rows[0].attempt_count) > 0;
+    
+    res.json({ hasAttempted, attemptCount: parseInt(result.rows[0].attempt_count) });
+  } catch (error) {
+    console.error('Check quiz attempt error', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // Get quiz attempts for a user
 router.get('/:courseId/attempts/:userId', async (req, res) => {

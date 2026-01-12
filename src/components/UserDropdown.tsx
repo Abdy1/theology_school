@@ -78,27 +78,8 @@ export const UserDropdown = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={() => navigate('/student')}
-          className="cursor-pointer hover:bg-accent/50"
-        >
-          <User className="mr-2 h-4 w-4" />
-          {t('userDropdown:dashboard')}
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => navigate('/my-courses')}
-          className="cursor-pointer hover:bg-accent/50"
-        >
-          <BookOpen className="mr-2 h-4 w-4" />
-          {t('userDropdown:myCourses')}
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => navigate('/my-library')}
-          className="cursor-pointer hover:bg-accent/50"
-        >
-          <BookOpen className="mr-2 h-4 w-4" />
-          {t('userDropdown:myLibrary')}
-        </DropdownMenuItem>
+     
+      
         <DropdownMenuItem 
           onClick={() => navigate('/settings')}
           className="cursor-pointer hover:bg-accent/50"

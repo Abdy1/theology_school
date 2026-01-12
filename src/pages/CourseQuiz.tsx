@@ -27,6 +27,7 @@ const CourseQuiz = () => {
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState<Record<number, number | null>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,6 +54,25 @@ const CourseQuiz = () => {
     fetchCourse();
   }, [courseId]);
 
+  useEffect(() => {
+    const checkPreviousAttempt = async () => {
+      if (!user || !moduleData?.id) return;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/quiz/${moduleData.id}/attempt/${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setHasAttempted(data.hasAttempted);
+          if (data.hasAttempted) {
+            setSubmitted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check previous attempt:', error);
+      }
+    };
+    checkPreviousAttempt();
+  }, [user, moduleData]);
+
   const moduleIdx = useMemo(() => Number(moduleIndex), [moduleIndex]);
   const moduleData = useMemo(() => course?.modules?.[moduleIdx], [course, moduleIdx]);
   const questions: Question[] = moduleData?.questions || [];
@@ -70,8 +90,6 @@ const CourseQuiz = () => {
     }, 0);
     return questions.length ? Math.round((correct / questions.length) * 100) : 0;
   }, [submitted, questions, answers]);
-
-  const passed = submitted && score >= PASSING_PERCENT;
 
   const handleSelect = (questionId: number, optionIndex: number) => {
     setAnswers((prev) => ({
@@ -127,9 +145,9 @@ const CourseQuiz = () => {
       setSubmitted(true);
       
       toast({
-        title: result.passed ? 'Quiz passed!' : 'Quiz not passed',
+        title: 'Quiz submitted!',
         description: `Score: ${result.percentage}% (${result.correctAnswers}/${result.totalQuestions})`,
-        variant: result.passed ? 'default' : 'destructive',
+        variant: 'default',
       });
 
       // Navigate back after a delay - only if user wants to leave
@@ -189,7 +207,7 @@ const CourseQuiz = () => {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{questions.length} question(s)</Badge>
-            <Badge variant={passed ? 'default' : 'outline'}>
+            <Badge variant="outline">
               {submitted ? `Score: ${score}%` : 'Not submitted'}
             </Badge>
           </div>
@@ -199,7 +217,7 @@ const CourseQuiz = () => {
           <CardHeader>
             <CardTitle>Module Assessment</CardTitle>
             <CardDescription>
-              Answer all questions. Passing requires {PASSING_PERCENT}% or higher.
+              Answer all questions. You have only one attempt for this quiz.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -208,8 +226,8 @@ const CourseQuiz = () => {
               <div className="rounded-lg border p-6 bg-muted/50">
                 <div className="text-center space-y-4">
                   <div className="flex justify-center">
-                    <Badge variant={passed ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-                      {passed ? '✓ Quiz Passed' : '✗ Quiz Failed'}
+                    <Badge variant="default" className="text-lg px-4 py-2">
+                      ✓ Quiz Completed
                     </Badge>
                   </div>
                   <div>
@@ -218,9 +236,9 @@ const CourseQuiz = () => {
                       You got {questions.reduce((acc, q) => acc + (answers[q.id] === q.correctIndex ? 1 : 0), 0)} out of {questions.length} questions correct
                     </p>
                   </div>
-                  {!passed && (
-                    <div className="text-sm text-muted-foreground bg-destructive/10 p-3 rounded-md">
-                      You need at least {PASSING_PERCENT}% to pass. Review the material and try again.
+                  {hasAttempted && (
+                    <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md border border-blue-200">
+                      You have already completed this quiz. No retakes are allowed.
                     </div>
                   )}
                 </div>
@@ -266,7 +284,7 @@ const CourseQuiz = () => {
             ))}
 
             <div className="flex flex-wrap items-center gap-3">
-              {!submitted ? (
+              {!submitted && !hasAttempted ? (
                 <>
                   <Button onClick={handleSubmit} disabled={questions.length === 0 || totalAnswered < questions.length}>
                     Submit quiz
@@ -280,7 +298,7 @@ const CourseQuiz = () => {
                   <Button onClick={() => navigate(`/courses/${courseId}/learn`)}>
                     Back to learning
                   </Button>
-                  {passed && moduleIdx < (course.modules?.length || 0) - 1 && (
+                  {submitted && moduleIdx < (course.modules?.length || 0) - 1 && (
                     <Button
                       variant="secondary"
                       onClick={() => navigate(`/courses/${courseId}/modules/${moduleIdx + 1}/quiz`)}
@@ -288,23 +306,12 @@ const CourseQuiz = () => {
                       Next module quiz
                     </Button>
                   )}
-                  {!passed && (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setAnswers({});
-                        setSubmitted(false);
-                      }}
-                    >
-                      Retake quiz
-                    </Button>
-                  )}
                 </>
               )}
             </div>
-            {submitted && !passed && (
+            {hasAttempted && (
               <p className="text-sm text-muted-foreground">
-                You need at least {PASSING_PERCENT}% to proceed. Review the content and try again.
+                You have already completed this quiz. No retakes are allowed.
               </p>
             )}
             <p className="text-xs text-muted-foreground">
