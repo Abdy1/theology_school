@@ -14,11 +14,11 @@ export const Navigation = () => {
   const isLandingPage = location.pathname === '/';
 
   return (
-    <nav className="border-b bg-card">
+    <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
        
           {/* <BookOpen className="h-8 w-8 text-primary" /> */}
-          <span className="text-2xl font-bold text-primary">Dothan</span>
+          <span className="text-2xl font-bold text-primary">Dothan Ministry</span>
     
         
         <div className="flex items-center space-x-4">
@@ -45,8 +45,8 @@ export const Navigation = () => {
                     <Link to="/courses" className="text-foreground hover:text-primary transition-colors">
                       {t('navigation:courses')}
                     </Link>
-                    <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
-                      {t('navigation:contact')}
+                    <Link to="/about" className="text-foreground hover:text-primary transition-colors">
+                      {t('navigation:about')}
                     </Link>
                   </>
                 )}
@@ -60,8 +60,8 @@ export const Navigation = () => {
                 </Link>
                 {isLandingPage && (
                   <>
-                    <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
-                      {t('navigation:contact')}
+                    <Link to="/about" className="text-foreground hover:text-primary transition-colors">
+                      {t('navigation:about')}
                     </Link>
                   </>
                 )}

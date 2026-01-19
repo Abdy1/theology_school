@@ -13,7 +13,6 @@ import CourseDetail from "./pages/CourseDetail";
 import CourseLearn from "./pages/CourseLearn";
 import CourseQuiz from "./pages/CourseQuiz";
 import MyCourses from "./pages/MyCourses";
-import Contact from "./pages/Contact";
 import AdminDashboard from "./pages/AdminDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -29,6 +28,7 @@ import BookDetail from "./pages/BookDetail";
 import MyLibrary from "./pages/MyLibrary";
 import BookReader from "./pages/BookReader";
 import LibraryManagement from "./pages/LibraryManagement";
+import AboutUs from "./pages/AboutUs";
 
 const queryClient = new QueryClient();
 
@@ -54,7 +54,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<AboutUs />} />
             
             {/* Library Routes - Public Access */}
             <Route path="/library" element={<Library />} />
