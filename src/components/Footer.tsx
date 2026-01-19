@@ -36,19 +36,7 @@ export const Footer = () => {
               </a>
             </div>
 
-            {/* Ready to Begin Journey CTA */}
-            <div className="bg-gradient-to-r from-[#FCAF17]/20 to-[#FCAF17]/10 rounded-lg p-4 border border-[#FCAF17]/30">
-              <h4 className="font-semibold mb-2">{t('index:readyToBeginJourneyFooter')}</h4>
-              <p className="text-xs opacity-90 mb-3">
-                {t('index:journeyDescription')}
-              </p>
-              <Link to="/signup">
-                <Button size="sm" className="w-full bg-[#FCAF17] text-primary hover:bg-[#FCAF17]/90 transition-colors">
-                  {t('index:getStartedToday')}
-                </Button>
-              </Link>
-            </div>
-          </div>
+                      </div>
 
           {/* Quick Links */}
           <div>
