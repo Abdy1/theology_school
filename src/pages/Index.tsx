@@ -56,7 +56,7 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section id="hero" className="relative bg-white">
+      <section id="hero" className="relative bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row min-h-[500px]">
             {/* Left Side - Main Content */}
@@ -284,9 +284,6 @@ const Index = () => {
                     <div className="text-4xl">
                       {course.icon}
                     </div>
-                    <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-xs font-medium">
-                      {course.category}
-                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
@@ -296,6 +293,13 @@ const Index = () => {
                   <CardDescription className="text-muted-foreground text-sm mb-4">
                     {course.description}
                   </CardDescription>
+                  <div className={`text-xs px-2 py-1 rounded font-medium inline-block mb-2 ${
+                    course.category === 'Online Degree' ? 'bg-blue-500 text-white' :
+                    course.category === 'Online Diploma' ? 'bg-green-500 text-white' :
+                    'bg-orange-500 text-white'
+                  }`}>
+                    {course.category}
+                  </div>
                   <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
                     <span>{course.duration}</span>
                     <span>{course.enrolled} enrolled</span>
