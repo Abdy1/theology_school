@@ -113,85 +113,96 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/20"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent"></div>
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-serif mb-6 tracking-wide">
-            {t('index:strengtheningChurch')}
-          </h2>
-          <p className="text-lg md:text-xl mb-10 max-w-3xl mx-auto opacity-90 text-white font-serif leading-relaxed">
-            {t('index:equipYourself')}
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link to="/signup">
-              <Button size="lg" variant="secondary" className="text-lg bg-white text-primary hover:bg-[#FCAF17] hover:bg-opacity-50 hover:text-white transition-all duration-300 transform hover:scale-105">
-                <Play className="mr-2 h-5 w-5" />
-                {t('index:startLearningToday')}
-              </Button>
-            </Link>
-            <Link to="/courses">
-              <Button size="lg" variant="outline" className="text-lg border-2 border-white bg-transparent text-white hover:bg-[#FCAF17] hover:bg-opacity-50 hover:border-[#FCAF17] hover:border-opacity-50 hover:text-white transition-all duration-300">
-                <BookOpen className="mr-2 h-5 w-5" />
-                {t('index:browseCourses')}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-serif text-primary mb-16 tracking-wide text-center">Why Choose Dothan?</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 border border-border/50 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="text-center pb-6">
-                <div className="mx-auto mb-6 w-16 h-16 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-400 shadow-lg border border-primary/20">
-                  <Video className="h-8 w-8 text-primary" />
+      <section className="relative overflow-hidden bg-white shadow-inner">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row min-h-[400px] overflow-hidden shadow-2xl">
+            {/* Left Side - Main Content */}
+            <div className="flex-1 text-center lg:text-left py-12 px-6 lg:px-12 relative bg-gradient-to-br from-primary via-primary/95 to-primary/90 shadow-2xl">
+              <div className="relative z-10">
+                <div className="inline-block mb-6">
+                  <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold text-white uppercase tracking-wider border border-white/10 shadow-lg transition-all duration-300 hover:bg-white/30 hover:border-white/20 hover:scale-105 hover:shadow-2xl">
+                    Welcome to Dothan Ministry
+                  </span>
                 </div>
-                <CardTitle className="text-xl mb-3 font-semibold text-primary">{t('index:videoLessons')}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm leading-relaxed">
-                  {t('index:videoDescription')}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 border border-border/50 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="text-center pb-6">
-                <div className="mx-auto mb-6 w-16 h-16 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-400 shadow-lg border border-primary/20">
-                  <BookOpen className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-4 md:mb-6 tracking-tight text-white leading-tight drop-shadow-lg">
+                  {t('index:strengtheningChurch')}
+                </h1>
+                <p className="text-base md:text-lg lg:text-xl mb-6 md:mb-8 max-w-2xl lg:max-w-3xl text-white/95 font-serif leading-relaxed lg:mx-0 mx-auto font-light">
+                  {t('index:equipYourself')}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 lg:justify-start justify-center">
+                  <Link to="/signup">
+                    <Button size="lg" variant="secondary" className="px-8 py-4 text-base font-semibold bg-[#FCAF17] text-white hover:bg-yellow-600 hover:text-white transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border border-white/20">
+                      <Play className="mr-2 h-5 w-5" />
+                      {t('index:startLearningToday')}
+                    </Button>
+                  </Link>
+                  <Link to="/courses">
+                    <Button size="lg" className="px-8 py-4 text-base font-semibold bg-[#FCAF17] text-white hover:bg-yellow-600 hover:text-white transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                      <BookOpen className="mr-2 h-5 w-5" />
+                      {t('index:browseCourses')}
+                    </Button>
+                  </Link>
                 </div>
-                <CardTitle className="text-xl mb-3 font-semibold text-primary">{t('index:comprehensiveCurriculum')}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm leading-relaxed">
-                  {t('index:curriculumDescription')}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
+            
+            {/* Right Side - Features */}
+            <div className="flex-1 py-12 px-6 lg:px-12 relative bg-gray-50">
+              <div className="relative z-10">
+                {/* Why Choose Dothan Features */}
+                <div className="w-full space-y-3">
+                  <div className="inline-block mb-6">
+                    <span className="px-4 py-2 bg-[#FCAF17]/20 backdrop-blur-sm rounded-full text-sm font-semibold text-[#FCAF17] uppercase tracking-wider border border-[#FCAF17]/30 shadow-lg">
+                      Why Choose Dothan?
+                    </span>
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold font-serif mb-6 tracking-tight text-gray-800 leading-tight drop-shadow-md">
+                  </h2>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 transition-all duration-300 hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200 group">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#FCAF17]/30 to-[#FCAF17]/10 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0 group-hover:scale-110 group-hover:from-[#FCAF17]/50 group-hover:to-[#FCAF17]/25 shadow-md">
+                        <Video className="h-4 w-4 text-gray-700 transition-transform duration-300 group-hover:rotate-12" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 text-xs mb-0.5 transition-colors duration-300 group-hover:text-[#FCAF17]">{t('index:videoLessons')}</h4>
+                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 transition-opacity duration-300 group-hover:text-gray-700">{t('index:videoDescription')}</p>
+                      </div>
+                    </div>
 
-            <Card className="group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 border border-border/50 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="text-center pb-6">
-                <div className="mx-auto mb-6 w-16 h-16 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-400 shadow-lg border border-primary/20">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-3 font-semibold text-primary">{t('index:learnAtYourPace')}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm leading-relaxed">
-                  {t('index:paceDescription')}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 transition-all duration-300 hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200 group">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#FCAF17]/30 to-[#FCAF17]/10 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0 group-hover:scale-110 group-hover:from-[#FCAF17]/50 group-hover:to-[#FCAF17]/25 shadow-md">
+                        <BookOpen className="h-4 w-4 text-gray-700 transition-transform duration-300 group-hover:rotate-12" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 text-xs mb-0.5 transition-colors duration-300 group-hover:text-[#FCAF17]">{t('index:comprehensiveCurriculum')}</h4>
+                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 transition-opacity duration-300 group-hover:text-gray-700">{t('index:curriculumDescription')}</p>
+                      </div>
+                    </div>
 
-            <Card className="group hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 border border-border/50 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="text-center pb-6">
-                <div className="mx-auto mb-6 w-16 h-16 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-400 shadow-lg border border-primary/20">
-                  <Award className="h-8 w-8 text-primary" />
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 transition-all duration-300 hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200 group">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#FCAF17]/30 to-[#FCAF17]/10 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0 group-hover:scale-110 group-hover:from-[#FCAF17]/50 group-hover:to-[#FCAF17]/25 shadow-md">
+                        <Users className="h-4 w-4 text-gray-700 transition-transform duration-300 group-hover:rotate-12" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 text-xs mb-0.5 transition-colors duration-300 group-hover:text-[#FCAF17]">{t('index:learnAtYourPace')}</h4>
+                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 transition-opacity duration-300 group-hover:text-gray-700">{t('index:paceDescription')}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 transition-all duration-300 hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200 group">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#FCAF17]/30 to-[#FCAF17]/10 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0 group-hover:scale-110 group-hover:from-[#FCAF17]/50 group-hover:to-[#FCAF17]/25 shadow-md">
+                        <Award className="h-4 w-4 text-gray-700 transition-transform duration-300 group-hover:rotate-12" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 text-xs mb-0.5 transition-colors duration-300 group-hover:text-[#FCAF17]">{t('index:certificates')}</h4>
+                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 transition-opacity duration-300 group-hover:text-gray-700">{t('index:certificatesDescription')}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <CardTitle className="text-xl mb-3 font-semibold text-primary">{t('index:certificates')}</CardTitle>
-                <CardDescription className="text-muted-foreground text-sm leading-relaxed">
-                  {t('index:certificatesDescription')}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </section>
