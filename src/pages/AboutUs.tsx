@@ -108,10 +108,10 @@ const AboutUs = () => {
                     <CardContent>
                       <div className="prose prose-lg max-w-none">
                         <p className="text-muted-foreground leading-relaxed mb-4">
-                          [Your content here - Tell me about Dothan Ministry's identity, background, and story]
+                          Dothan Ministry is a premier theological institution dedicated to providing quality education and training for church leaders, ministers, and believers seeking to deepen their understanding of God's Word. Founded with a vision to equip the church for effective discipleship, we have grown into a respected center for theological learning and practical ministry preparation.
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
-                          [Your content here - Share about your organization's journey and purpose]
+                          Our institution combines academic excellence with spiritual formation, creating an environment where students can grow both intellectually and spiritually. We believe that effective ministry requires both deep biblical knowledge and practical application, which is why our programs are designed to bridge theory and practice.
                         </p>
                       </div>
                     </CardContent>
@@ -216,31 +216,6 @@ const AboutUs = () => {
                   </Card>
                 </article>
 
-                {/* History Section */}
-                <article id="history" className="scroll-mt-24">
-                  <Card className="border border-border/50 bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary/15 to-primary/5 rounded-xl flex items-center justify-center shadow-lg border border-primary/20">
-                          <BookOpen className="h-6 w-6 text-primary" />
-                        </div>
-                        <CardTitle className="text-2xl font-semibold text-primary">
-                          Who We Are
-                        </CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="prose prose-lg max-w-none">
-                        <p className="text-muted-foreground leading-relaxed mb-4">
-                          [Your content here - Tell me about Dothan Ministry's identity, background, and story]
-                        </p>
-                        <p className="text-muted-foreground leading-relaxed">
-                          [Your content here - Share about your organization's journey and purpose]
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </article>
 
                 {/* Team Section */}
                 <article id="team" className="scroll-mt-24">
@@ -257,12 +232,86 @@ const AboutUs = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="prose prose-lg max-w-none">
-                        <p className="text-muted-foreground leading-relaxed mb-4">
+                        <p className="text-muted-foreground leading-relaxed mb-6">
                           Our leadership team consists of experienced theologians, educators, and ministry practitioners who bring decades of combined experience in theological education and church leadership. Each team member is committed to our mission of equipping believers for effective ministry.
                         </p>
-                        <p className="text-muted-foreground leading-relaxed">
+                        
+                        <div className="grid md:grid-cols-2 gap-6 mt-8">
+                          <div className="bg-muted/30 rounded-lg p-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-4">
+                              <Users className="h-8 w-8 text-primary" />
+                            </div>
+                            <h4 className="font-semibold text-foreground mb-2">Academic Leadership</h4>
+                            <p className="text-muted-foreground text-sm leading-relaxed">
+                              Our academic faculty holds advanced degrees from reputable theological institutions and brings real-world ministry experience to the classroom.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-muted/30 rounded-lg p-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-4">
+                              <Award className="h-8 w-8 text-primary" />
+                            </div>
+                            <h4 className="font-semibold text-foreground mb-2">Ministry Practitioners</h4>
+                            <p className="text-muted-foreground text-sm leading-relaxed">
+                              Our ministry practitioners provide practical insights and mentorship, ensuring that our education remains grounded in real-world application.
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <p className="text-muted-foreground leading-relaxed mt-6">
                           Together, we provide guidance, oversight, and strategic direction to ensure that Dothan Ministry continues to fulfill its calling with integrity and excellence.
                         </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </article>
+
+                {/* Impact Statistics */}
+                <article className="scroll-mt-24">
+                  <Card className="border border-border/50 bg-gradient-to-br from-primary/5 to-primary/1 backdrop-blur-sm">
+                    <CardContent className="p-8">
+                      <div className="text-center mb-8">
+                        <h3 className="text-2xl font-semibold text-primary mb-2">Our Impact</h3>
+                        <p className="text-muted-foreground">Transforming lives through quality theological education</p>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-4 gap-6">
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-primary mb-2">500+</div>
+                          <p className="text-sm text-muted-foreground">Graduates</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-primary mb-2">50+</div>
+                          <p className="text-sm text-muted-foreground">Courses</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-primary mb-2">15+</div>
+                          <p className="text-sm text-muted-foreground">Countries</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-primary mb-2">20+</div>
+                          <p className="text-sm text-muted-foreground">Years</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </article>
+
+                {/* Call to Action */}
+                <article className="scroll-mt-24">
+                  <Card className="border border-border/50 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground">
+                    <CardContent className="p-8 text-center">
+                      <h3 className="text-2xl font-semibold mb-4">Join Us in Our Mission</h3>
+                      <p className="mb-6 opacity-90 max-w-2xl mx-auto">
+                        Whether you're looking to deepen your theological knowledge, enhance your ministry skills, or partner with us in equipping leaders worldwide, we invite you to become part of the Dothan Ministry community.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button className="px-6 py-3 bg-white text-primary rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                          Explore Courses
+                        </button>
+                        <button className="px-6 py-3 bg-primary/20 border border-primary/30 text-primary-foreground rounded-lg font-medium hover:bg-primary/30 transition-colors">
+                          Contact Us
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
