@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import "./i18n";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -28,7 +29,12 @@ import BookDetail from "./pages/BookDetail";
 import MyLibrary from "./pages/MyLibrary";
 import BookReader from "./pages/BookReader";
 import LibraryManagement from "./pages/LibraryManagement";
-import AboutUs from "./pages/AboutUs";
+import WhoWeAre from "./pages/about/WhoWeAre";
+import StatementOfFaith from "./pages/about/StatementOfFaith";
+import Faculty from "./pages/about/Faculty";
+import Accreditation from "./pages/about/Accreditation";
+import { Programs } from "./pages/about/Programs";
+import Partners from "./pages/about/Partners";
 
 const queryClient = new QueryClient();
 
@@ -54,7 +60,13 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            <Route path="/about" element={<AboutUs />} />
+            {/* About Section Routes */}
+            <Route path="/about/statement-of-faith" element={<StatementOfFaith />} />
+            <Route path="/about/faculty" element={<Faculty />} />
+            <Route path="/about/accreditation" element={<Accreditation />} />
+            <Route path="/about/programs" element={<Programs />} />
+            <Route path="/about/partners" element={<Partners />} />
+            <Route path="/about" element={<WhoWeAre />} />
             
             {/* Library Routes - Public Access */}
             <Route path="/library" element={<Library />} />

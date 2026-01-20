@@ -1,20 +1,16 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
-import { FloatingNavigation } from '@/components/FloatingNavigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Users, Award, Video, Play, Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Send } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Play, Send, Users, BookOpen, Award, Book, Building } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { FloatingNavigation } from '@/components/FloatingNavigation';
+import { Footer } from '@/components/Footer';
+import { Navigation } from '@/components/Navigation';
 
-import { useState } from 'react';
 
-const Index = () => {
+  const Index = () => {
   const { t } = useTranslation();
-  const { user, isLoading, isStudent, isTeacher, isAdmin } = useAuth();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('All');
   const [activeValuesTab, setActiveValuesTab] = useState('About');
   const [formData, setFormData] = useState({
@@ -22,7 +18,7 @@ const Index = () => {
     email: '',
     message: ''
   });
-
+  const [currentBookIndex, setCurrentBookIndex] = useState(0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -39,21 +35,104 @@ const Index = () => {
     setFormData({ name: '', email: '', message: '' });
   };
 
-  // Redirect logged-in users to their dashboard
-  if (!isLoading && user) {
-    if (isStudent) {
-      navigate('/student');
-    } else if (isTeacher) {
-      navigate('/instructor');
-    } else if (isAdmin) {
-      navigate('/admin');
+  const nextBooks = () => {
+    setCurrentBookIndex((prev) => (prev + 4) % 8);
+  };
+
+  const prevBooks = () => {
+    setCurrentBookIndex((prev) => (prev - 4 + 8) % 8);
+  };
+
+  const getVisibleBooks = () => {
+    const books = [
+      {
+        id: 1,
+        title: 'Systematic Theology',
+        author: 'Wayne Grudem',
+        description: 'Comprehensive introduction to biblical doctrine, covering all major theological topics.',
+        category: 'Theology',
+        pages: 1290,
+        icon: '📚'
+      },
+      {
+        id: 2,
+        title: 'Knowing God',
+        author: 'J.I. Packer',
+        description: 'A classic work exploring nature and character of God and our relationship with Him.',
+        category: 'Spiritual Formation',
+        pages: 286,
+        icon: '🙏'
+      },
+      {
+        id: 3,
+        title: 'The Cost of Discipleship',
+        author: 'Dietrich Bonhoeffer',
+        description: 'A profound examination of Sermon on the Mount and what it means to follow Christ.',
+        category: 'Christian Living',
+        pages: 320,
+        icon: '✝️'
+      },
+      {
+        id: 4,
+        title: 'Biblical Hermeneutics',
+        author: 'Milton Terry',
+        description: 'Essential guide to interpreting Scripture with historical and grammatical accuracy.',
+        category: 'Biblical Studies',
+        pages: 560,
+        icon: '📜'
+      },
+      {
+        id: 5,
+        title: 'Church History in Plain Language',
+        author: 'Bruce Shelley',
+        description: 'An accessible overview of Christianity from its origins to present day.',
+        category: 'Church History',
+        pages: 528,
+        icon: '🏛️'
+      },
+      {
+        id: 6,
+        title: 'The Purpose Driven Life',
+        author: 'Rick Warren',
+        description: 'A 40-day spiritual journey to understand God\'s purpose for your life.',
+        category: 'Christian Living',
+        pages: 336,
+        icon: '🎯'
+      },
+      {
+        id: 7,
+        title: 'New Testament Commentary',
+        author: 'John Stott',
+        description: 'Comprehensive exposition of New Testament books with practical applications.',
+        category: 'Biblical Studies',
+        pages: 896,
+        icon: '📜'
+      },
+      {
+        id: 8,
+        title: 'Christian Ethics',
+        author: 'Wayne Grudem',
+        description: 'Biblical principles for making moral decisions in contemporary society.',
+        category: 'Ethics',
+        pages: 792,
+        icon: '⚖️'
+      }
+    ];
+    
+    // Get 4 books based on current page
+    const visibleBooks = [];
+    const startIndex = Math.floor(currentBookIndex / 4) * 4;
+    for (let i = 0; i < 4; i++) {
+      const index = startIndex + i;
+      visibleBooks.push(books[index]);
     }
-    return null;
-  }
+    return visibleBooks;
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <FloatingNavigation />
       
       {/* Hero Section */}
       <section id="hero" className="relative bg-gray-50">
@@ -99,7 +178,7 @@ const Index = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-4 rounded-lg bg-white border border-gray-200 hover:border-[#FCAF17]/30">
                     <div className="w-8 h-8 bg-[#FCAF17]/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Video className="h-4 w-4 text-gray-700" />
+                      <Play className="h-4 w-4 text-gray-700" />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-800 text-sm mb-1">{t('index:videoLessons')}</h4>
@@ -146,13 +225,11 @@ const Index = () => {
       {/* Featured Online Programs Section */}
       <section id="programs" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif text-primary mb-6 tracking-wide">
-              Featured Online Programs
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our comprehensive range of theological programs designed to equip you for ministry and spiritual growth.
-            </p>
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <span className="text-primary font-medium text-sm uppercase tracking-wider">Available Online Academic Programs</span>
+            </div>
           </div>
           
           {/* Simple Tabs */}
@@ -161,7 +238,7 @@ const Index = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2 text-sm font-medium transition-colors border-b-2 ${
+                className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 ${
                   activeTab === tab
                     ? 'text-primary border-primary'
                     : 'text-muted-foreground border-transparent hover:text-primary'
@@ -183,7 +260,7 @@ const Index = () => {
                 duration: '4 Years',
                 enrolled: 245,
                 level: 'Undergraduate',
-                icon: '🎓'
+                icon: '📖'
               },
               {
                 id: 2,
@@ -193,7 +270,7 @@ const Index = () => {
                 duration: '3 Years',
                 enrolled: 189,
                 level: 'Graduate',
-                icon: '📚'
+                icon: '📖'
               },
               {
                 id: 3,
@@ -203,7 +280,7 @@ const Index = () => {
                 duration: '2 Years',
                 enrolled: 156,
                 level: 'Diploma',
-                icon: '💬'
+                icon: '📖'
               },
               {
                 id: 4,
@@ -280,9 +357,12 @@ const Index = () => {
             .map((course) => (
               <Card key={course.id} className="hover:shadow-lg transition-shadow border border-gray-200 bg-white">
                 <CardHeader className="p-0">
-                  <div className="relative h-32 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                    <div className="text-4xl">
-                      {course.icon}
+                  <div className="relative h-32 bg-gray-100 rounded-t-lg flex items-center justify-center group">
+                    <div className="absolute inset-0 bg-black/20 rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center opacity-100 group-hover:opacity-100 transition-opacity duration-300 transform group-hover:scale-110 shadow-lg">
+                        <Play className="h-5 w-5 text-gray-800 ml-1" />
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -293,11 +373,7 @@ const Index = () => {
                   <CardDescription className="text-muted-foreground text-sm mb-4">
                     {course.description}
                   </CardDescription>
-                  <div className={`text-xs px-2 py-1 rounded font-medium inline-block mb-2 ${
-                    course.category === 'Online Degree' ? 'bg-blue-500 text-white' :
-                    course.category === 'Online Diploma' ? 'bg-green-500 text-white' :
-                    'bg-orange-500 text-white'
-                  }`}>
+                  <div className="text-[10px] px-1.5 py-1 rounded font-medium inline-block mb-2 bg-[#394149] text-white">
                     {course.category}
                   </div>
                   <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
@@ -325,7 +401,7 @@ const Index = () => {
       </section>
 
       {/* About Dothan Ministries Section */}
-      <section id="about" className="py-24 bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
+      <section id="about" className="pt-24 bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
@@ -336,32 +412,25 @@ const Index = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-7xl mx-auto">
             {/* Section Header */}
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-6">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                 <span className="text-primary font-medium text-sm uppercase tracking-wider">About Dothan Ministries</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-serif text-primary mb-6 tracking-tight">
-                Strengthening Churches Through
-                <span className="text-[#FCAF17]"> Biblical Education</span>
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Empowering believers worldwide with comprehensive theological training and discipleship resources
-              </p>
             </div>
             
             <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-16">
               {/* Text Content - Left Side */}
               <div className="flex-1 space-y-6">
                 {/* Vision, Mission & Core Values Tabs */}
-                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+                <div>
                   {/* Tabs Navigation */}
-                  <div className="flex flex-wrap justify-center gap-2 mb-8 border-b border-gray-200">
+                  <div className="flex flex-wrap justify-start gap-2 mb-8 border-b border-gray-200">
                     {['About', 'Vision', 'Mission', 'Core Values'].map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveValuesTab(tab)}
-                        className={`px-6 py-3 text-sm font-medium transition-all duration-300 border-b-2 ${
+                        className={`px-4 py-2 text-xs font-medium transition-all duration-300 border-b-2 ${
                           activeValuesTab === tab
                             ? 'text-primary border-primary bg-primary/5'
                             : 'text-muted-foreground border-transparent hover:text-primary hover:bg-gray-50'
@@ -375,27 +444,31 @@ const Index = () => {
                   {/* Tab Content */}
                   <div className="min-h-[300px]">
                     {activeValuesTab === 'About' && (
-                      <div className="space-y-4">
-                        <h3 className="text-2xl font-semibold text-primary mb-4 text-center">About Dothan Ministries</h3>
-                        <div className="space-y-4">
+                      <div className="space-y-6">
+                        <h3 className="text-2xl font-semibold text-primary mb-8 text-center">About Dothan Ministries</h3>
+                        <div className="space-y-6">
                           <p className="text-muted-foreground leading-relaxed text-justify">
                             {t('index:aboutDothanPassage1')}
                           </p>
-                          <p className="text-muted-foreground leading-relaxed text-justify">
+                          <p className="text-muted-foreground leading-relaxed text-justify mb-16">
                             {t('index:aboutDothanPassage2')}
                           </p>
                           
                           {/* Statistics Section */}
-                          <div className="flex flex-wrap justify-center gap-8 mt-6 pt-6 border-t border-gray-200">
+                          <div className="flex flex-wrap justify-start gap-8 mt-8 pt-8 border-t border-gray-200">
                             {[
-                              { number: "4,000+", label: "Ministers Reached", icon: "👥" },
-                              { number: "10+", label: "Courses Offered", icon: "📚" },
-                              { number: "4", label: "Years of Ministry", icon: "⭐" }
+                              { number: "Hundreds", label: "Ministers Trained", icon: <Users className="h-6 w-6 text-primary" /> },
+                              { number: "10+", label: "Courses Offered", icon: <BookOpen className="h-6 w-6 text-primary" /> },
+                              { number: "Various", label: "Churches Reached", icon: <Building className="h-6 w-6 text-primary" /> },
+                              { number: "2+", label: "Years of Ministry", icon: <Award className="h-6 w-6 text-primary" /> },
+                              { number: "Specialized", label: "Training Programs", icon: <Book className="h-6 w-6 text-primary" /> }
                             ].map((stat, index) => (
-                              <div key={index} className="text-center">
-                                <div className="text-2xl mb-2">{stat.icon}</div>
-                                <div className="text-lg font-bold text-primary mb-1">{stat.number}</div>
-                                <div className="text-xs text-muted-foreground font-medium">{stat.label}</div>
+                              <div key={index} className="text-left">
+                                <div className="flex items-center gap-2 mb-3">
+                                  {stat.icon}
+                                  <div className="text-lg font-bold text-primary">{stat.number}</div>
+                                </div>
+                                <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</div>
                               </div>
                             ))}
                           </div>
@@ -436,7 +509,7 @@ const Index = () => {
                             'Demonstrating Christ in daily life',
                             'Perseverance'
                           ].map((value, index) => (
-                            <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
                               <div className="w-2 h-2 bg-[#FCAF17] rounded-full flex-shrink-0"></div>
                               <span className="text-muted-foreground font-medium">{value}</span>
                             </div>
@@ -448,7 +521,7 @@ const Index = () => {
                 </div>
                 
                 {/* Enhanced CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-6 justify-start mb-16">
                   <Link to="/about">
                     <Button size="lg" className="px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
                       Learn More About Us
@@ -460,37 +533,30 @@ const Index = () => {
                     rel="noreferrer"
                   >
                     <Button size="lg" variant="outline" className="px-8 py-4 border-[#FCAF17] text-[#FCAF17] hover:bg-[#FCAF17] hover:text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-                      <span className="mr-2">💝</span>
                       Support Our Ministry
                     </Button>
                   </a>
                 </div>
               </div>
               
-              {/* Enhanced Logo Display - Right Side */}
-              <div className="flex-shrink-0 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-[#FCAF17]/10 rounded-3xl blur-3xl"></div>
-                <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-gray-100">
-                  <div className="relative overflow-hidden rounded-2xl">
-                    <img 
-                      src="/images/dothan logo.PNG" 
-                      alt="Dothan Logo" 
-                      className="w-[350px] h-[350px] max-w-full object-contain"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
-                  </div>
-                  <div className="mt-6 text-center">
-                    <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      Active Ministry Since 2015
-                    </div>
+              {/* Clean Logo Display - Right Side */}
+              <div className="flex-shrink-0">
+                <img 
+                  src="/images/dothan logo.PNG" 
+                  alt="Dothan Logo" 
+                  className="w-[450px] h-[450px] max-w-full object-contain"
+                />
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    Since 2015
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Trust Indicators */}
-            <div className="mt-16 pt-8 border-t border-gray-200">
+            <div className="mt-16 pt-8 border-t border-gray-200 mb-0">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2">
                   <h4 className="text-lg font-semibold text-primary mb-2">Trusted by Ethopian Evangelical Church Council</h4>
@@ -511,117 +577,60 @@ const Index = () => {
       <section id="library" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-serif text-primary mb-16 tracking-wide text-center">{t('index:useOurDigitalLibrary')}</h2>
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-primary font-medium text-sm uppercase tracking-wider">Use Our Digital Library</span>
+              </div>
+            </div>
             
-            {/* Simple Book Cards Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              {[
-                {
-                  id: 1,
-                  title: 'Systematic Theology',
-                  author: 'Wayne Grudem',
-                  description: 'Comprehensive introduction to biblical doctrine, covering all major theological topics.',
-                  category: 'Theology',
-                  pages: 1290,
-                  icon: '📚'
-                },
-                {
-                  id: 2,
-                  title: 'Knowing God',
-                  author: 'J.I. Packer',
-                  description: 'A classic work exploring the nature and character of God and our relationship with Him.',
-                  category: 'Spiritual Formation',
-                  pages: 286,
-                  icon: '🙏'
-                },
-                {
-                  id: 3,
-                  title: 'The Cost of Discipleship',
-                  author: 'Dietrich Bonhoeffer',
-                  description: 'A profound examination of the Sermon on the Mount and what it means to follow Christ.',
-                  category: 'Christian Living',
-                  pages: 320,
-                  icon: '✝️'
-                },
-                {
-                  id: 4,
-                  title: 'Biblical Hermeneutics',
-                  author: 'Milton Terry',
-                  description: 'Essential guide to interpreting Scripture with historical and grammatical accuracy.',
-                  category: 'Biblical Studies',
-                  pages: 560,
-                  icon: '📖'
-                },
-                {
-                  id: 5,
-                  title: 'Church History in Plain Language',
-                  author: 'Bruce Shelley',
-                  description: 'An accessible overview of Christianity from its origins to the present day.',
-                  category: 'Church History',
-                  pages: 528,
-                  icon: '🏛️'
-                },
-                {
-                  id: 6,
-                  title: 'The Purpose Driven Life',
-                  author: 'Rick Warren',
-                  description: 'A 40-day spiritual journey to understand God\'s purpose for your life.',
-                  category: 'Christian Living',
-                  pages: 336,
-                  icon: '🎯'
-                },
-                {
-                  id: 7,
-                  title: 'New Testament Commentary',
-                  author: 'John Stott',
-                  description: 'Comprehensive exposition of New Testament books with practical applications.',
-                  category: 'Biblical Studies',
-                  pages: 896,
-                  icon: '📜'
-                },
-                {
-                  id: 8,
-                  title: 'Christian Ethics',
-                  author: 'Wayne Grudem',
-                  description: 'Biblical principles for making moral decisions in contemporary society.',
-                  category: 'Ethics',
-                  pages: 792,
-                  icon: '⚖️'
-                }
-              ].map((book) => (
-                <Card key={book.id} className="hover:shadow-lg transition-shadow border border-gray-200 bg-white">
-                  <CardHeader className="p-0">
-                    <div className="relative h-40 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                      <div className="text-4xl">
-                        {book.icon}
+            {/* Book Carousel - 4 Cards Grid */}
+            <div className="relative mb-16">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {getVisibleBooks().map((book) => (
+                  <Card key={book.id} className="hover:shadow-lg transition-shadow border border-gray-200 bg-white">
+                    <CardHeader className="p-0">
+                      <div className="relative h-40 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                        <Book className="h-8 w-6 text-gray-600" />
+                        <div className="absolute top-2 right-2 bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium">
+                          {book.category}
+                        </div>
                       </div>
-                      <div className="absolute top-2 right-2 bg-gray-800 text-white px-2 py-1 rounded text-xs font-medium">
-                        {book.category}
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <CardTitle className="text-lg mb-2 font-semibold text-primary">
+                        {book.title}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground mb-2 font-medium">{book.author}</p>
+                      <CardDescription className="text-muted-foreground text-sm leading-relaxed mb-4">
+                        {book.description}
+                      </CardDescription>
+                      <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
+                        <span>{book.pages} pages</span>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardTitle className="text-lg mb-2 font-semibold text-primary">
-                      {book.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mb-2 font-medium">{book.author}</p>
-                    <CardDescription className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      {book.description}
-                    </CardDescription>
-                    <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
-                      <span>{book.pages} pages</span>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span key={star} className="text-yellow-400 text-sm">⭐</span>
-                        ))}
-                      </div>
-                    </div>
-                    <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      Read Now
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                        Read Now
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              {/* Navigation Arrows - Outside Cards */}
+              <button
+                onClick={prevBooks}
+                className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-300 z-10"
+                aria-label="Previous books"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={nextBooks}
+                className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-300 z-10"
+                aria-label="Next books"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
             </div>
 
             {/* Simple CTA Section */}
