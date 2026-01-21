@@ -58,7 +58,7 @@ const Signup = () => {
                 <Input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Natnael Wakjira"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -69,7 +69,7 @@ const Signup = () => {
                 <Input
                   id="phone_number"
                   type="text"
-                  placeholder="+251"
+                  placeholder="+251-911-111-111"
                   value={phone_number}
                   onChange={(e) => setPhone_number(e.target.value)}
                   required
@@ -80,7 +80,7 @@ const Signup = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="natnaelwakjira@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
