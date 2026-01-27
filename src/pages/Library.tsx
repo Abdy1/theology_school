@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, BookOpen, Package, DollarSign, Clock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 interface Book {
   id: number;

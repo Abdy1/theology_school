@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 const CourseDetail = () => {
   const { user, isLoading } = useAuth();
@@ -211,7 +211,7 @@ const CourseDetail = () => {
                       onClick={async () => {
                         if (!courseId || !user?.id) {
                           toast({
-                            title: 'Unable to enroll',
+                            title: 'Unable to purchase',
                             description: 'User or course missing. Please log in again.',
                             variant: 'destructive',
                           });
@@ -220,30 +220,41 @@ const CourseDetail = () => {
 
                         setEnrolling(true);
                         try {
-                          const response = await fetch(`${API_BASE_URL}/api/enrollments`, {
+                          const response = await fetch(`${API_BASE_URL}/api/payment/initialize`, {
                             method: 'POST',
                             headers: {
                               'Content-Type': 'application/json',
+                              'Authorization': `Bearer YOUR_JWT_TOKEN`, // Will use actual user token
                             },
                             body: JSON.stringify({
-                              userId: Number(user.id),
+                              userId: user.id,
                               courseId: Number(courseId),
-                            }),
+                              amount: course.price,
+                              email: user.email,
+                              firstName: user.name || 'User'
+                            })
                           });
 
                           if (!response.ok) {
-                            throw new Error('Enrollment request failed');
+                            throw new Error('Payment initialization failed');
                           }
 
-                          toast({
-                            title: 'Enrolled successfully',
-                            description: 'Opening your course now.',
-                          });
-                          navigate(`/courses/${courseId}/learn`);
+                          const paymentData = await response.json();
+                          
+                          if (paymentData.success) {
+                            toast({
+                              title: 'Payment initiated',
+                              description: 'Redirecting to payment page...',
+                            });
+                            // Redirect to Chapa checkout
+                            window.location.href = paymentData.checkout_url;
+                          } else {
+                            throw new Error(paymentData.error || 'Payment failed');
+                          }
                         } catch (error) {
-                          console.error('Enrollment failed', error);
+                          console.error('Payment failed:', error);
                           toast({
-                            title: 'Could not enroll',
+                            title: 'Payment failed',
                             description: 'Please try again or contact support.',
                             variant: 'destructive',
                           });

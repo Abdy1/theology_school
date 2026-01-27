@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 interface User {
   id: string;

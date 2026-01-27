@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Users, BookOpen, Settings, TrendingUp, UserPlus, CheckCircle, XCircle, Library } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8081';
+
+const API_BASE_URL = 'https://dothanministries.org';
 
 const AdminDashboard = () => {
   const { t } = useTranslation();

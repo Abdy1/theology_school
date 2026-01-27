@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Package, Coins, Clock, User, ArrowLeft, Star, Calendar, FileText } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 // Helper function to get full image URL
 const getImageUrl = (imageUrl?: string) => {

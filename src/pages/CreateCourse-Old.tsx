@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, X, Upload, Video, FileText, HelpCircle, ClipboardList } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 interface Module {
   id: string;

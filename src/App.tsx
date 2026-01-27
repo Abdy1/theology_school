@@ -28,6 +28,7 @@ import AssignmentReview from "./pages/AssignmentReview";
 import Library from "./pages/Library";
 import BookDetail from "./pages/BookDetail";
 import MyLibrary from "./pages/MyLibrary";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import BookReader from "./pages/BookReader";
 import LibraryManagement from "./pages/LibraryManagement";
 import WhoWeAre from "./pages/about/WhoWeAre";
@@ -94,6 +95,8 @@ const App = () => (
                 <MyLibrary />
               </ProtectedRoute>
             } />
+            
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             
             {/* Role-based routes */}
             <Route path="/admin" element={

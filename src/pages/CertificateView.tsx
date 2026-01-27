@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, Share2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 interface CertificateData {
   certificateId: string;

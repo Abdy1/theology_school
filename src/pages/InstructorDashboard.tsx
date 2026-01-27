@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Video, Users, FileText, Edit, Trash2, ChevronDown, ChevronUp, BookOpen, Clock, CheckCircle, Circle } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 interface AssignmentSubmissionRow {
   id: number;

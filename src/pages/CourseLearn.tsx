@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import VideoPlayer from '@/components/VideoPlayer';
 import { cn } from '@/lib/utils';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 // Convert various video URLs into proper format for VideoPlayer
 const normalizeVideoUrl = (url: string) => {

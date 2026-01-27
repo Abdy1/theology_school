@@ -13,7 +13,7 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
 GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://dothanministries.org';
 
 interface Book {
   id: number;
