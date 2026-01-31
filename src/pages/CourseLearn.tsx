@@ -434,7 +434,9 @@ const CourseLearn = () => {
       const response = await fetch(`${API_BASE_URL}/api/enrollments/my?userId=${user.id}`);
       if (response.ok) {
         const enrollments = await response.json();
+        console.log('DEBUG: Frontend received enrollments:', enrollments);
         const currentEnrollment = enrollments.find((e: any) => String(e.courseId) === String(courseId));
+        console.log('DEBUG: Current enrollment found:', currentEnrollment);
         if (currentEnrollment) {
           setEnrollmentGrade(currentEnrollment);
         }
@@ -618,16 +620,19 @@ const CourseLearn = () => {
           </Button>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             {progressPercent === 100 && enrollmentGrade && (
-              <Button 
-                onClick={handleCertificateRequest}
-                disabled={certificateRequested || enrollmentGrade.finalGrade < 70}
-                variant={enrollmentGrade.finalGrade >= 70 ? "default" : "outline"}
-                className="w-full sm:w-auto"
-              >
-                {certificateRequested ? 'Generating...' : 
-                 enrollmentGrade.finalGrade >= 70 ? 'Request Certificate' : 
-                 `Grade: ${enrollmentGrade.finalGrade?.toFixed(1)}% (Need 70%)`}
-              </Button>
+              <>
+                {console.log('DEBUG: Rendering grade button - enrollmentGrade:', enrollmentGrade)}
+                <Button 
+                  onClick={handleCertificateRequest}
+                  disabled={certificateRequested || enrollmentGrade.finalGrade < 70}
+                  variant={enrollmentGrade.finalGrade >= 70 ? "default" : "outline"}
+                  className="w-full sm:w-auto"
+                >
+                  {certificateRequested ? 'Generating...' : 
+                   enrollmentGrade.finalGrade >= 70 ? 'Request Certificate' : 
+                   `Grade: ${enrollmentGrade.finalGrade?.toFixed(1)}% (Need 70%)`}
+                </Button>
+              </>
             )}
             <p className="text-sm text-muted-foreground text-center sm:text-left">You own this course</p>
           </div>

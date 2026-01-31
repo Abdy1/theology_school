@@ -40,13 +40,23 @@ router.get('/my', async (req, res) => {
     );
     const list = result.rows;
 
+    console.log('DEBUG: Enrollment data for user', userId, ':', JSON.stringify(list, null, 2));
+
     const view = list.map((e: any) => ({
       enrollmentId: e.id,
       courseId: e.courseId,
       title: e.title ?? '',
       status: e.status,
       progressPercent: e.progressPercent,
+      finalGrade: e.finalGrade,
+      gradeLetter: e.gradeLetter,
+      earnedPoints: e.earnedPoints,
+      totalPoints: e.totalPoints,
+      certificateIssued: e.certificateIssued,
+      certificateId: e.certificateId
     }));
+    
+    console.log('DEBUG: Processed enrollment view:', JSON.stringify(view, null, 2));
     
     res.json(view);
    
